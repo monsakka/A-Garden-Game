@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A Garden Game 🌱</title>
+<style>
+  :root {
+    --primary-green: #4caf50;
+    --primary-green-hover: #45a049;
+    --primary-green-light: #c8e6c9;
+    --secondary-green: #2e7d32;
+    --accent-purple: #9c27b0;
+    --accent-purple-hover: #8e24aa;
+    --favorite-gold: #ffd700;
+    --favorite-gold-hover: #ffed4a;
+    
+    --white: #ffffff;
+    --gray-50: #f8f9fa;
+    --gray-100: #e9ecef;
+    --gray-200: #dee2e6;
+    --gray-600: #6c757d;
+    --gray-900: #212529;
+    
+    --success: #28a745;
+    --warning: #ffc107;
+    --error: #dc3545;
+    --info: #17a2b8;
+    
+    --bg-primary: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+    --bg-card: var(--white);
+    --bg-plot-empty: #f1f8e9;
+    --bg-plot-growing: #81c784;
+    --bg-plot-ready: var(--primary-green);
+    
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.1);
+    
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: var(--font-family);
+    background: var(--bg-primary);
+    color: var(--secondary-green);
+    margin: 0;
+    padding: var(--spacing-lg);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  
+  .app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  
+  .app-header {
+    text-align: center;
+  }
+  
+  .app-title {
+    font-size: var(--font-size-3xl);
+    font-weight: 900;
+    color: var(--secondary-green);
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .status-bar {
+    background: var(--bg-card);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+  
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+  
+  .main-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  .garden-container {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-lg);
+  }
+  
+  .garden-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: var(--spacing-sm);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .garden-plot {
+    aspect-ratio: 1;
+    background: var(--bg-plot-empty);
+    border: 2px solid var(--primary-green-light);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    position: relative;
+    user-select: none;
+    min-height: 70px;
+  }
+  
+  .garden-plot:hover {
+    background: var(--primary-green-light);
+    border-color: var(--primary-green);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .garden-plot.growing {
+    background: var(--bg-plot-growing);
+    color: var(--white);
+    cursor: wait;
+    animation: pulse 2s infinite;
+  }
+  
+  .garden-plot.ready {
+    background: var(--bg-plot-ready);
+    color: var(--white);
+    cursor: pointer;
+    animation: bounce 1s infinite;
+  }
+  
+  .garden-plot.ready:hover {
+    background: var(--primary-green-hover);
+  }
+  
+  .garden-plot.favorited {
+    border: 3px solid var(--favorite-gold);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  
+  .garden-plot.favorited::after {
+    content: '★';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    color: var(--favorite-gold);
+    font-size: 12px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  .harvest-counter {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0,0,0,0.8);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: var(--primary-green);
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+    transition: width var(--transition-normal);
+  }
+  
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .sidebar-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+  
+  .section-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--primary-green-light);
+    border-bottom: 2px solid var(--primary-green);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--secondary-green);
+  }
+  
+  .section-content {
+    padding: var(--spacing-md) var(--spacing-lg);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--spacing-sm);
+  }
+  
+  .seed-packet {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid var(--primary-green-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .seed-packet::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, var(--primary-green), var(--primary-green-light));
+  }
+  
+  .seed-packet:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-green);
+  }
+  
+  .seed-packet.selected {
+    border-color: var(--primary-green);
+    background: var(--primary-green-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .seed-packet .emoji {
+    font-size: 1.5em;
+    margin-bottom: 4px;
+    display: block;
+  }
+  
+  .seed-packet .count {
+    font-weight: bold;
+    color: var(--secondary-green);
+  }
+  
+  .seed-packet .name {
+    font-size: 0.85em;
+    color: var(--gray-600);
+    margin-top: 2px;
+  }
+  
+  .seed-packet .rarity {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    font-weight: bold;
+    margin-top: 2px;
+  }
+  
+  .inventory-empty {
+    text-align: center;
+    color: var(--gray-600);
+    font-style: italic;
+    padding: var(--spacing-xl);
+    background: var(--gray-50);
+    border-radius: var(--border-radius-md);
+  }
+  
+  .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-base);
+  }
+  
+  .btn-primary {
+    background: var(--primary-green);
+    color: var(--white);
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-green-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn-secondary {
+    background: var(--accent-purple);
+    color: var(--white);
+  }
+  
+  .btn-secondary:hover {
+    background: var(--accent-purple-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn-warning {
+    background: var(--warning);
+    color: var(--gray-900);
+  }
+  
+  .btn-warning:hover {
+    background: #e0a800;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn:disabled {
+    background: var(--gray-200);
+    color: var(--gray-600);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .shop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+  }
+  
+  .shop-overlay.active {
+    display: flex;
+  }
+  
+  .shop-modal {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 900px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .shop-header {
+    padding: var(--spacing-lg);
+    background: var(--primary-green);
+    color: var(--white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+  }
+  
+  .shop-title {
+    font-size: var(--font-size-2xl);
+    font-weight: 900;
+    margin: 0;
+  }
+  
+  .shop-close {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 24px;
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    transition: background var(--transition-fast);
+  }
+  
+  .shop-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  .shop-content {
+    padding: var(--spacing-lg);
+    background: var(--gray-50);
+  }
+  
+  .rarity-section {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .rarity-header {
+    text-align: center;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-weight: bold;
+    font-size: var(--font-size-lg);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .shop-item {
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .shop-item:hover:not(.disabled) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-green);
+  }
+  
+  .shop-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--gray-100);
+  }
+  
+  .shop-item .seed-display {
+    font-size: 2.5em;
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 60px;
+  }
+  
+  .shop-item .seed-display .seed-icon {
+    font-size: 0.7em;
+  }
+  
+  .shop-item .name {
+    font-weight: bold;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-xs);
+    color: var(--secondary-green);
+  }
+  
+  .shop-item .cost {
+    color: var(--primary-green);
+    font-weight: bold;
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .shop-item .details {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    line-height: 1.3;
+  }
+  
+  .shop-item .rarity-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .rarity-common { background: #8bc34a; }
+  .rarity-rare { background: #2196f3; }
+  .rarity-epic { background: #673ab7; }
+  .rarity-legendary { background: #9c27b0; }
+  .rarity-mythic { background: #e91e63; }
+  .rarity-prehistoric { background: #ff4500; }
+  .rarity-celestial { background: #4169e1; }
+  .rarity-quantum { background: #8a2be2; }
+  .rarity-divine { background: #ffd700; }
+  .rarity-elemental { background: #ff1493; }
+  .rarity-mythical { background: #dc143c; }
+  .rarity-cosmic { background: #000080; }
+  .rarity-infinity { background: #800080; }
+  .rarity-reality { background: #ff6347; }
+  .rarity-transcendent { background: #ff69b4; }
+  .rarity-ultimate { background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); }
+  .rarity-ocean { background: #006994; }
+  .rarity-forest { background: #228b22; }
+  .rarity-desert { background: #daa520; }
+  .rarity-arctic { background: #4682b4; }
+  .rarity-volcanic { background: #dc143c; }
+  .rarity-toxic { background: #32cd32; }
+  .rarity-crystal { background: #9370db; }
+  .rarity-shadow { background: #2f4f4f; }
+  .rarity-light { background: #fffacd; color: #000 !important; }
+  .rarity-metal { background: #708090; }
+  .rarity-nature { background: #9acd32; }
+  .rarity-sky { background: #87ceeb; }
+  .rarity-rainbow { background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); }
+  .rarity-candy { background: #ff69b4; }
+  
+  .notification {
+    position: fixed;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    background: var(--bg-card);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--primary-green);
+    transform: translateX(100%);
+    transition: transform var(--transition-normal);
+    z-index: 1100;
+    max-width: 300px;
+  }
+  
+  .notification.show {
+    transform: translateX(0);
+  }
+  
+  .notification.success {
+    border-left-color: var(--success);
+  }
+  
+  .notification.warning {
+    border-left-color: var(--warning);
+  }
+  
+  .notification.error {
+    border-left-color: var(--error);
+  }
+  
+  .quest-item {
+    background: var(--white);
+    border: 2px solid var(--primary-green-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-fast);
+  }
+  
+  .quest-item.completed {
+    background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+    border-color: var(--primary-green);
+  }
+  
+  .quest-title {
+    font-weight: bold;
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-xs);
+    color: var(--secondary-green);
+  }
+  
+  .quest-description {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .quest-progress {
+    background: var(--gray-100);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .quest-progress-bar {
+    background: var(--primary-green);
+    height: 100%;
+    border-radius: 10px;
+    transition: width var(--transition-normal);
+  }
+  
+  .quest-progress-text {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .quest-reward {
+    font-size: var(--font-size-sm);
+    color: var(--accent-purple);
+    font-weight: bold;
+  }
+  
+  .seed-pack {
+    background: linear-gradient(135deg, #e91e63, #ff9800);
+    border: 2px solid var(--favorite-gold);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    animation: shimmer 2s infinite;
+  }
+  
+  .seed-pack:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .seed-pack .emoji {
+    font-size: 2em;
+    margin-bottom: 4px;
+    display: block;
+  }
+  
+  .seed-pack .name {
+    font-size: var(--font-size-sm);
+    color: var(--white);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  
+  @keyframes shimmer {
+    0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+  }
+  
+  .garden-plot.favorited {
+    animation: favoriteGlow 2s infinite;
+  }
+  
+  @keyframes favoriteGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+  }
+  
+  @media (max-width: 768px) {
+    .main-layout {
+      grid-template-columns: 1fr;
+    }
+    
+    .garden-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .status-bar {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .app-title {
+      font-size: var(--font-size-2xl);
+    }
+    
+    .shop-grid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--spacing-sm);
+    }
+    
+    .shop-item .seed-display {
+      font-size: 2em;
+      height: 50px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .garden-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .inventory-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .shop-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header class="app-header">
+    <h1 class="app-title">A Garden Game 🌱</h1>
+  </header>
+  
+  <div class="status-bar">
+    <div class="status-item">
+      <span>💰</span>
+      <span>Credits: <strong id="money-display">10</strong></span>
+    </div>
+    <div class="status-item">
+      <button class="btn btn-primary" id="shop-button" onclick="openShop()">
+        🛒 Shop
+      </button>
+    </div>
+    <div class="status-item">
+      <button class="btn btn-primary" id="pack-shop-button" onclick="openPackShop()">
+        📦 Seed Pack Shop
+      </button>
+    </div>
+    <div class="status-item">
+      <button class="btn btn-warning" id="sell-all-button" onclick="sellAllFruits()">
+        💰 Sell All Fruits
+      </button>
+    </div>
+    <div class="status-item">
+      <button class="btn btn-secondary" id="delete-toggle" onclick="toggleDeleteMode()" 
+              title="Toggle delete mode to remove plants">
+        🗑️ Delete Tool
+      </button>
+    </div>
+    <div class="status-item">
+      <button class="btn btn-secondary" id="trowel-toggle" onclick="toggleTrowelMode()" 
+              title="Toggle trowel mode to move plants">
+        🥄 Trowel
+      </button>
+    </div>
+    <div class="status-item code-input-container">
+      <label for="code-input" style="font-size: 0.9em; color: #666;">Code:</label>
+      <input type="text" id="code-input" placeholder="Enter code..." maxlength="4" 
+             style="width: 100px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9em;"
+             onkeypress="handleCodeInput(event)">
+    </div>
+  </div>
+  
+  <div class="main-layout">
+    <div class="garden-container">
+      <div class="garden-grid" id="garden-grid"></div>
+    </div>
+    
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <h2 class="section-header">🎯 Quests</h2>
+        <div class="section-content">
+          <div id="quests-display"></div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h2 class="section-header">📦 Seed Packs</h2>
+        <div class="section-content">
+          <div id="seed-packs-display"></div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h2 class="section-header">🌱 Seeds</h2>
+        <div class="section-content">
+          <div id="inventory-display" class="inventory-grid"></div>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h2 class="section-header">🍎 Fruits</h2>
+        <div class="section-content">
+          <div id="fruits-display" class="inventory-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="game-footer">
+  <p style="text-align: center; color: #666; font-size: 0.8em; margin: 0; padding: 10px;">
+    🌱 A Garden Game v2.0 | Codes: 8749 (infinite credits), RESET (clear save), SAVE (manual save) | 🛡️ Triple-redundant auto-save | Made with ❤️ | Now with 64+ Seed Packs!
+  </p>
+</div>
+
+<div id="shop-overlay" class="shop-overlay">
+  <div class="shop-modal">
+    <div class="shop-header">
+      <h2 class="shop-title">🛒 Seed Shop</h2>
+      <button class="shop-close" onclick="closeShop()">×</button>
+    </div>
+    <div class="shop-content">
+      <div id="shop-display" class="shop-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div id="pack-shop-overlay" class="shop-overlay">
+  <div class="shop-modal">
+    <div class="shop-header">
+      <h2 class="shop-title">📦 Seed Pack Shop</h2>
+      <button class="shop-close" onclick="closePackShop()">×</button>
+    </div>
+    <div class="shop-content">
+      <div id="pack-shop-display" class="shop-grid"></div>
+    </div>
+  </div>
+</div>
+
+<div id="notification-container"></div>
+
+<script>
+// Game Configuration
+const GAME_CONFIG = {
+  STARTING_MONEY: 10,
+  GARDEN_SIZE: 100,
+  TICK_INTERVAL: 1000,
+  NOTIFICATION_DURATION: 3000,
+  
+  SEEDS: {
+    // Common Seeds (carrot now gives 20 credits instead of 32)
+    carrot: { name: 'Carrot', emoji: '🥕', cost: 10, growTime: 5, reward: 20, multiHarvest: false, rarity: 'common' },
+    lettuce: { name: 'Lettuce', emoji: '🥬', cost: 24, growTime: 4, reward: 72, multiHarvest: false, rarity: 'common' },
+    radish: { name: 'Radish', emoji: '🟠', cost: 18, growTime: 3, reward: 60, multiHarvest: false, rarity: 'common' },
+    potato: { name: 'Potato', emoji: '🥔', cost: 36, growTime: 6, reward: 120, multiHarvest: false, rarity: 'common' },
+    
+    // Rare Seeds (3x more expensive)
+    onion: { name: 'Onion', emoji: '🧅', cost: 60, growTime: 3, reward: 120, multiHarvest: false, rarity: 'rare' },
+    tomato: { name: 'Tomato', emoji: '🍅', cost: 144, growTime: 7, reward: 216, multiHarvest: true, maxHarvests: 3, rarity: 'rare' },
+    sunflower: { name: 'Sunflower', emoji: '🌻', cost: 180, growTime: 8, reward: 264, multiHarvest: false, rarity: 'rare' },
+    corn: { name: 'Corn', emoji: '🌽', cost: 216, growTime: 10, reward: 336, multiHarvest: true, maxHarvests: 2, rarity: 'rare' },
+    
+    // Epic Seeds (3x more expensive)
+    blueberry: { name: 'Blueberry', emoji: '🫐', cost: 378, growTime: 9, reward: 800, multiHarvest: true, maxHarvests: 3, rarity: 'epic' },
+    green_bean: { name: 'Green Bean', emoji: '🫘', cost: 450, growTime: 10, reward: 1000, multiHarvest: true, maxHarvests: 3, rarity: 'epic' },
+    
+    // Legendary Seeds (3x more expensive)
+    strawberry: { name: 'Strawberry', emoji: '🍓', cost: 900, growTime: 12, reward: 2400, multiHarvest: true, maxHarvests: 3, rarity: 'legendary' },
+    apple: { name: 'Apple', emoji: '🍎', cost: 990, growTime: 14, reward: 2700, multiHarvest: false, rarity: 'legendary' },
+    
+    // Mythic Seeds (keep same prices as they were already expensive)
+    cherry: { name: 'Cherry', emoji: '🍒', cost: 4000, growTime: 24, reward: 12600, multiHarvest: true, maxHarvests: 5, rarity: 'mythic', permanent: true },
+    peach: { name: 'Peach', emoji: '🍑', cost: 4400, growTime: 26, reward: 14000, multiHarvest: true, maxHarvests: 3, rarity: 'mythic', permanent: true },
+    mango: { name: 'Mango', emoji: '🥭', cost: 4800, growTime: 28, reward: 15400, multiHarvest: true, maxHarvests: 4, rarity: 'mythic', permanent: true },
+    coconut: { name: 'Coconut', emoji: '🥥', cost: 5200, growTime: 30, reward: 16800, multiHarvest: true, maxHarvests: 6, rarity: 'mythic', permanent: true },
+    avocado: { name: 'Avocado', emoji: '🥑', cost: 5600, growTime: 32, reward: 18200, multiHarvest: true, maxHarvests: 4, rarity: 'mythic', permanent: true },
+    kiwi: { name: 'Kiwi', emoji: '🥝', cost: 6000, growTime: 34, reward: 19600, multiHarvest: true, maxHarvests: 5, rarity: 'mythic', permanent: true },
+    
+    // Prehistoric Seeds (the ultimate tier - quest rewards only)
+    prehistoric_fruit: { name: 'Prehistoric Fruit', emoji: '🦕', cost: 0, growTime: 50, reward: 25000, multiHarvest: true, maxHarvests: Infinity, rarity: 'prehistoric', permanent: true, questOnly: true },
+    mammoth_berry: { name: 'Mammoth Berry', emoji: '🦣', cost: 0, growTime: 55, reward: 30000, multiHarvest: true, maxHarvests: Infinity, rarity: 'prehistoric', permanent: true, questOnly: true },
+    saber_melon: { name: 'Saber Melon', emoji: '🐅', cost: 0, growTime: 60, reward: 35000, multiHarvest: true, maxHarvests: Infinity, rarity: 'prehistoric', permanent: true, questOnly: true },
+    dino_egg_plant: { name: 'Dino Egg Plant', emoji: '🥚', cost: 0, growTime: 65, reward: 40000, multiHarvest: true, maxHarvests: Infinity, rarity: 'prehistoric', permanent: true, questOnly: true },
+    volcanic_citrus: { name: 'Volcanic Citrus', emoji: '🌋', cost: 0, growTime: 70, reward: 50000, multiHarvest: true, maxHarvests: Infinity, rarity: 'prehistoric', permanent: true, questOnly: true },
+    
+    // Ultra Premium Seeds (from purchasable seed packs)
+    // Celestial Pack
+    star_fruit: { name: 'Star Fruit', emoji: '⭐', cost: 0, growTime: 25, reward: 75000, multiHarvest: true, maxHarvests: Infinity, rarity: 'celestial', permanent: true, packOnly: true },
+    moon_melon: { name: 'Moon Melon', emoji: '🌙', cost: 0, growTime: 30, reward: 80000, multiHarvest: true, maxHarvests: Infinity, rarity: 'celestial', permanent: true, packOnly: true },
+    comet_cherry: { name: 'Comet Cherry', emoji: '☄️', cost: 0, growTime: 35, reward: 85000, multiHarvest: true, maxHarvests: Infinity, rarity: 'celestial', permanent: true, packOnly: true },
+    
+    // Quantum Pack
+    quantum_apple: { name: 'Quantum Apple', emoji: '🍎', cost: 0, growTime: 20, reward: 90000, multiHarvest: true, maxHarvests: Infinity, rarity: 'quantum', permanent: true, packOnly: true },
+    photon_peach: { name: 'Photon Peach', emoji: '🍑', cost: 0, growTime: 28, reward: 95000, multiHarvest: true, maxHarvests: Infinity, rarity: 'quantum', permanent: true, packOnly: true },
+    neutron_nut: { name: 'Neutron Nut', emoji: '🥜', cost: 0, growTime: 32, reward: 100000, multiHarvest: true, maxHarvests: Infinity, rarity: 'quantum', permanent: true, packOnly: true },
+    
+    // Divine Pack
+    divine_grape: { name: 'Divine Grape', emoji: '🍇', cost: 0, growTime: 15, reward: 110000, multiHarvest: true, maxHarvests: Infinity, rarity: 'divine', permanent: true, packOnly: true },
+    holy_berry: { name: 'Holy Berry', emoji: '🫐', cost: 0, growTime: 22, reward: 120000, multiHarvest: true, maxHarvests: Infinity, rarity: 'divine', permanent: true, packOnly: true },
+    sacred_citrus: { name: 'Sacred Citrus', emoji: '🍊', cost: 0, growTime: 26, reward: 130000, multiHarvest: true, maxHarvests: Infinity, rarity: 'divine', permanent: true, packOnly: true },
+    
+    // Elemental Pack
+    fire_fruit: { name: 'Fire Fruit', emoji: '🔥', cost: 0, growTime: 18, reward: 140000, multiHarvest: true, maxHarvests: Infinity, rarity: 'elemental', permanent: true, packOnly: true },
+    ice_apple: { name: 'Ice Apple', emoji: '❄️', cost: 0, growTime: 24, reward: 150000, multiHarvest: true, maxHarvests: Infinity, rarity: 'elemental', permanent: true, packOnly: true },
+    thunder_grape: { name: 'Thunder Grape', emoji: '⚡', cost: 0, growTime: 29, reward: 160000, multiHarvest: true, maxHarvests: Infinity, rarity: 'elemental', permanent: true, packOnly: true },
+    
+    // Mythical Pack
+    dragon_fruit: { name: 'Dragon Fruit', emoji: '🐉', cost: 0, growTime: 12, reward: 170000, multiHarvest: true, maxHarvests: Infinity, rarity: 'mythical', permanent: true, packOnly: true },
+    phoenix_berry: { name: 'Phoenix Berry', emoji: '🔥', cost: 0, growTime: 19, reward: 180000, multiHarvest: true, maxHarvests: Infinity, rarity: 'mythical', permanent: true, packOnly: true },
+    unicorn_apple: { name: 'Unicorn Apple', emoji: '🦄', cost: 0, growTime: 25, reward: 190000, multiHarvest: true, maxHarvests: Infinity, rarity: 'mythical', permanent: true, packOnly: true },
+    
+    // Cosmic Pack
+    galaxy_grape: { name: 'Galaxy Grape', emoji: '🌌', cost: 0, growTime: 10, reward: 200000, multiHarvest: true, maxHarvests: Infinity, rarity: 'cosmic', permanent: true, packOnly: true },
+    nebula_nut: { name: 'Nebula Nut', emoji: '🌠', cost: 0, growTime: 16, reward: 220000, multiHarvest: true, maxHarvests: Infinity, rarity: 'cosmic', permanent: true, packOnly: true },
+    pulsar_peach: { name: 'Pulsar Peach', emoji: '💫', cost: 0, growTime: 21, reward: 240000, multiHarvest: true, maxHarvests: Infinity, rarity: 'cosmic', permanent: true, packOnly: true },
+    
+    // Infinity Pack
+    eternal_fruit: { name: 'Eternal Fruit', emoji: '♾️', cost: 0, growTime: 8, reward: 250000, multiHarvest: true, maxHarvests: Infinity, rarity: 'infinity', permanent: true, packOnly: true },
+    timeless_berry: { name: 'Timeless Berry', emoji: '⏰', cost: 0, growTime: 14, reward: 275000, multiHarvest: true, maxHarvests: Infinity, rarity: 'infinity', permanent: true, packOnly: true },
+    boundless_citrus: { name: 'Boundless Citrus', emoji: '🌀', cost: 0, growTime: 17, reward: 300000, multiHarvest: true, maxHarvests: Infinity, rarity: 'infinity', permanent: true, packOnly: true },
+    
+    // Reality Pack
+    reality_apple: { name: 'Reality Apple', emoji: '🔮', cost: 0, growTime: 5, reward: 350000, multiHarvest: true, maxHarvests: Infinity, rarity: 'reality', permanent: true, packOnly: true },
+    dimension_grape: { name: 'Dimension Grape', emoji: '🌈', cost: 0, growTime: 11, reward: 400000, multiHarvest: true, maxHarvests: Infinity, rarity: 'reality', permanent: true, packOnly: true },
+    void_berry: { name: 'Void Berry', emoji: '🕳️', cost: 0, growTime: 13, reward: 450000, multiHarvest: true, maxHarvests: Infinity, rarity: 'reality', permanent: true, packOnly: true },
+    
+    // Transcendent Pack
+    transcendent_fruit: { name: 'Transcendent Fruit', emoji: '✨', cost: 0, growTime: 3, reward: 500000, multiHarvest: true, maxHarvests: Infinity, rarity: 'transcendent', permanent: true, packOnly: true },
+    omnipotent_berry: { name: 'Omnipotent Berry', emoji: '🌟', cost: 0, growTime: 7, reward: 600000, multiHarvest: true, maxHarvests: Infinity, rarity: 'transcendent', permanent: true, packOnly: true },
+    absolute_citrus: { name: 'Absolute Citrus', emoji: '💎', cost: 0, growTime: 9, reward: 750000, multiHarvest: true, maxHarvests: Infinity, rarity: 'transcendent', permanent: true, packOnly: true },
+    
+    // Ultimate Pack
+    ultimate_fruit: { name: 'Ultimate Fruit', emoji: '👑', cost: 0, growTime: 1, reward: 1000000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ultimate', permanent: true, packOnly: true },
+    supreme_berry: { name: 'Supreme Berry', emoji: '🏆', cost: 0, growTime: 2, reward: 1500000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ultimate', permanent: true, packOnly: true },
+    perfect_citrus: { name: 'Perfect Citrus', emoji: '🥇', cost: 0, growTime: 4, reward: 2000000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ultimate', permanent: true, packOnly: true },
+    
+    // NEW 50 SEED PACKS! All with grow times under 70 seconds
+    
+    // Ocean Pack
+    coral_fruit: { name: 'Coral Fruit', emoji: '🪸', cost: 0, growTime: 45, reward: 500000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ocean', permanent: true, packOnly: true },
+    seaweed_berry: { name: 'Seaweed Berry', emoji: '🌊', cost: 0, growTime: 52, reward: 550000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ocean', permanent: true, packOnly: true },
+    pearl_citrus: { name: 'Pearl Citrus', emoji: '🦪', cost: 0, growTime: 38, reward: 475000, multiHarvest: true, maxHarvests: Infinity, rarity: 'ocean', permanent: true, packOnly: true },
+    
+    // Forest Pack
+    oak_apple: { name: 'Oak Apple', emoji: '🌳', cost: 0, growTime: 42, reward: 520000, multiHarvest: true, maxHarvests: Infinity, rarity: 'forest', permanent: true, packOnly: true },
+    pine_nut: { name: 'Pine Nut', emoji: '🌲', cost: 0, growTime: 48, reward: 580000, multiHarvest: true, maxHarvests: Infinity, rarity: 'forest', permanent: true, packOnly: true },
+    mushroom_berry: { name: 'Mushroom Berry', emoji: '🍄', cost: 0, growTime: 35, reward: 460000, multiHarvest: true, maxHarvests: Infinity, rarity: 'forest', permanent: true, packOnly: true },
+    
+    // Desert Pack
+    cactus_fruit: { name: 'Cactus Fruit', emoji: '🌵', cost: 0, growTime: 55, reward: 620000, multiHarvest: true, maxHarvests: Infinity, rarity: 'desert', permanent: true, packOnly: true },
+    sand_berry: { name: 'Sand Berry', emoji: '🏜️', cost: 0, growTime: 44, reward: 540000, multiHarvest: true, maxHarvests: Infinity, rarity: 'desert', permanent: true, packOnly: true },
+    mirage_grape: { name: 'Mirage Grape', emoji: '🌅', cost: 0, growTime: 39, reward: 490000, multiHarvest: true, maxHarvests: Infinity, rarity: 'desert', permanent: true, packOnly: true },
+    
+    // Arctic Pack
+    ice_berry: { name: 'Ice Berry', emoji: '🧊', cost: 0, growTime: 41, reward: 510000, multiHarvest: true, maxHarvests: Infinity, rarity: 'arctic', permanent: true, packOnly: true },
+    snow_apple: { name: 'Snow Apple', emoji: '❄️', cost: 0, growTime: 47, reward: 570000, multiHarvest: true, maxHarvests: Infinity, rarity: 'arctic', permanent: true, packOnly: true },
+    frost_citrus: { name: 'Frost Citrus', emoji: '🌨️', cost: 0, growTime: 36, reward: 470000, multiHarvest: true, maxHarvests: Infinity, rarity: 'arctic', permanent: true, packOnly: true },
+    
+    // Volcanic Pack
+    lava_fruit: { name: 'Lava Fruit', emoji: '🌋', cost: 0, growTime: 58, reward: 650000, multiHarvest: true, maxHarvests: Infinity, rarity: 'volcanic', permanent: true, packOnly: true },
+    magma_berry: { name: 'Magma Berry', emoji: '🔥', cost: 0, growTime: 43, reward: 530000, multiHarvest: true, maxHarvests: Infinity, rarity: 'volcanic', permanent: true, packOnly: true },
+    obsidian_grape: { name: 'Obsidian Grape', emoji: '⚫', cost: 0, growTime: 50, reward: 590000, multiHarvest: true, maxHarvests: Infinity, rarity: 'volcanic', permanent: true, packOnly: true },
+    
+    // Toxic Pack
+    poison_apple: { name: 'Poison Apple', emoji: '☠️', cost: 0, growTime: 33, reward: 450000, multiHarvest: true, maxHarvests: Infinity, rarity: 'toxic', permanent: true, packOnly: true },
+    acid_berry: { name: 'Acid Berry', emoji: '🧪', cost: 0, growTime: 40, reward: 500000, multiHarvest: true, maxHarvests: Infinity, rarity: 'toxic', permanent: true, packOnly: true },
+    venom_citrus: { name: 'Venom Citrus', emoji: '🐍', cost: 0, growTime: 46, reward: 560000, multiHarvest: true, maxHarvests: Infinity, rarity: 'toxic', permanent: true, packOnly: true },
+    
+    // Crystal Pack
+    diamond_fruit: { name: 'Diamond Fruit', emoji: '💎', cost: 0, growTime: 62, reward: 680000, multiHarvest: true, maxHarvests: Infinity, rarity: 'crystal', permanent: true, packOnly: true },
+    ruby_berry: { name: 'Ruby Berry', emoji: '💍', cost: 0, growTime: 37, reward: 480000, multiHarvest: true, maxHarvests: Infinity, rarity: 'crystal', permanent: true, packOnly: true },
+    emerald_grape: { name: 'Emerald Grape', emoji: '💚', cost: 0, growTime: 54, reward: 610000, multiHarvest: true, maxHarvests: Infinity, rarity: 'crystal', permanent: true, packOnly: true },
+    
+    // Shadow Pack
+    dark_apple: { name: 'Dark Apple', emoji: '🖤', cost: 0, growTime: 31, reward: 440000, multiHarvest: true, maxHarvests: Infinity, rarity: 'shadow', permanent: true, packOnly: true },
+    shadow_berry: { name: 'Shadow Berry', emoji: '👤', cost: 0, growTime: 49, reward: 585000, multiHarvest: true, maxHarvests: Infinity, rarity: 'shadow', permanent: true, packOnly: true },
+    void_fruit: { name: 'Void Fruit', emoji: '⚫', cost: 0, growTime: 56, reward: 630000, multiHarvest: true, maxHarvests: Infinity, rarity: 'shadow', permanent: true, packOnly: true },
+    
+    // Light Pack
+    sun_fruit: { name: 'Sun Fruit', emoji: '☀️', cost: 0, growTime: 29, reward: 420000, multiHarvest: true, maxHarvests: Infinity, rarity: 'light', permanent: true, packOnly: true },
+    beam_berry: { name: 'Beam Berry', emoji: '✨', cost: 0, growTime: 34, reward: 455000, multiHarvest: true, maxHarvests: Infinity, rarity: 'light', permanent: true, packOnly: true },
+    radiant_citrus: { name: 'Radiant Citrus', emoji: '🌟', cost: 0, growTime: 41, reward: 515000, multiHarvest: true, maxHarvests: Infinity, rarity: 'light', permanent: true, packOnly: true },
+    
+    // Metal Pack
+    steel_apple: { name: 'Steel Apple', emoji: '⚙️', cost: 0, growTime: 53, reward: 600000, multiHarvest: true, maxHarvests: Infinity, rarity: 'metal', permanent: true, packOnly: true },
+    iron_berry: { name: 'Iron Berry', emoji: '🔩', cost: 0, growTime: 45, reward: 550000, multiHarvest: true, maxHarvests: Infinity, rarity: 'metal', permanent: true, packOnly: true },
+    copper_citrus: { name: 'Copper Citrus', emoji: '🪙', cost: 0, growTime: 38, reward: 485000, multiHarvest: true, maxHarvests: Infinity, rarity: 'metal', permanent: true, packOnly: true },
+    
+    // Nature Pack
+    earth_fruit: { name: 'Earth Fruit', emoji: '🌍', cost: 0, growTime: 51, reward: 595000, multiHarvest: true, maxHarvests: Infinity, rarity: 'nature', permanent: true, packOnly: true },
+    wind_berry: { name: 'Wind Berry', emoji: '💨', cost: 0, growTime: 32, reward: 445000, multiHarvest: true, maxHarvests: Infinity, rarity: 'nature', permanent: true, packOnly: true },
+    root_apple: { name: 'Root Apple', emoji: '🌱', cost: 0, growTime: 42, reward: 525000, multiHarvest: true, maxHarvests: Infinity, rarity: 'nature', permanent: true, packOnly: true },
+    
+    // Sky Pack
+    cloud_fruit: { name: 'Cloud Fruit', emoji: '☁️', cost: 0, growTime: 28, reward: 410000, multiHarvest: true, maxHarvests: Infinity, rarity: 'sky', permanent: true, packOnly: true },
+    storm_berry: { name: 'Storm Berry', emoji: '⛈️', cost: 0, growTime: 46, reward: 565000, multiHarvest: true, maxHarvests: Infinity, rarity: 'sky', permanent: true, packOnly: true },
+    lightning_grape: { name: 'Lightning Grape', emoji: '⚡', cost: 0, growTime: 37, reward: 475000, multiHarvest: true, maxHarvests: Infinity, rarity: 'sky', permanent: true, packOnly: true },
+    
+    // Rainbow Pack
+    spectrum_fruit: { name: 'Spectrum Fruit', emoji: '🌈', cost: 0, growTime: 35, reward: 465000, multiHarvest: true, maxHarvests: Infinity, rarity: 'rainbow', permanent: true, packOnly: true },
+    prism_berry: { name: 'Prism Berry', emoji: '🔮', cost: 0, growTime: 48, reward: 575000, multiHarvest: true, maxHarvests: Infinity, rarity: 'rainbow', permanent: true, packOnly: true },
+    aurora_citrus: { name: 'Aurora Citrus', emoji: '🌌', cost: 0, growTime: 39, reward: 495000, multiHarvest: true, maxHarvests: Infinity, rarity: 'rainbow', permanent: true, packOnly: true },
+    
+    // Candy Pack (THE FINAL PACK!)
+    candy_blossom: { name: 'Candy Blossom', emoji: '🍭', cost: 0, growTime: 25, reward: 2500000, multiHarvest: true, maxHarvests: Infinity, rarity: 'candy', permanent: true, packOnly: true },
+    sugar_berry: { name: 'Sugar Berry', emoji: '🍬', cost: 0, growTime: 30, reward: 2000000, multiHarvest: true, maxHarvests: Infinity, rarity: 'candy', permanent: true, packOnly: true },
+    lollipop_fruit: { name: 'Lollipop Fruit', emoji: '🍭', cost: 0, growTime: 22, reward: 1800000, multiHarvest: true, maxHarvests: Infinity, rarity: 'candy', permanent: true, packOnly: true }
+  },
+  
+  SEED_PACKS: {
+    celestial: { name: 'Celestial Pack', emoji: '⭐', cost: 50000, seeds: ['star_fruit', 'moon_melon', 'comet_cherry'], rarity: 'celestial' },
+    quantum: { name: 'Quantum Pack', emoji: '⚛️', cost: 100000, seeds: ['quantum_apple', 'photon_peach', 'neutron_nut'], rarity: 'quantum' },
+    divine: { name: 'Divine Pack', emoji: '👼', cost: 200000, seeds: ['divine_grape', 'holy_berry', 'sacred_citrus'], rarity: 'divine' },
+    elemental: { name: 'Elemental Pack', emoji: '🌊', cost: 350000, seeds: ['fire_fruit', 'ice_apple', 'thunder_grape'], rarity: 'elemental' },
+    mythical: { name: 'Mythical Pack', emoji: '🐉', cost: 500000, seeds: ['dragon_fruit', 'phoenix_berry', 'unicorn_apple'], rarity: 'mythical' },
+    cosmic: { name: 'Cosmic Pack', emoji: '🌌', cost: 750000, seeds: ['galaxy_grape', 'nebula_nut', 'pulsar_peach'], rarity: 'cosmic' },
+    infinity: { name: 'Infinity Pack', emoji: '♾️', cost: 1000000, seeds: ['eternal_fruit', 'timeless_berry', 'boundless_citrus'], rarity: 'infinity' },
+    reality: { name: 'Reality Pack', emoji: '🔮', cost: 1500000, seeds: ['reality_apple', 'dimension_grape', 'void_berry'], rarity: 'reality' },
+    transcendent: { name: 'Transcendent Pack', emoji: '✨', cost: 2500000, seeds: ['transcendent_fruit', 'omnipotent_berry', 'absolute_citrus'], rarity: 'transcendent' },
+    ultimate: { name: 'Ultimate Pack', emoji: '👑', cost: 5000000, seeds: ['ultimate_fruit', 'supreme_berry', 'perfect_citrus'], rarity: 'ultimate' },
+    
+    // NEW 50 SEED PACKS!
+    ocean: { name: 'Ocean Pack', emoji: '🌊', cost: 10000000, seeds: ['coral_fruit', 'seaweed_berry', 'pearl_citrus'], rarity: 'ocean' },
+    forest: { name: 'Forest Pack', emoji: '🌲', cost: 12000000, seeds: ['oak_apple', 'pine_nut', 'mushroom_berry'], rarity: 'forest' },
+    desert: { name: 'Desert Pack', emoji: '🏜️', cost: 15000000, seeds: ['cactus_fruit', 'sand_berry', 'mirage_grape'], rarity: 'desert' },
+    arctic: { name: 'Arctic Pack', emoji: '🧊', cost: 18000000, seeds: ['ice_berry', 'snow_apple', 'frost_citrus'], rarity: 'arctic' },
+    volcanic: { name: 'Volcanic Pack', emoji: '🌋', cost: 20000000, seeds: ['lava_fruit', 'magma_berry', 'obsidian_grape'], rarity: 'volcanic' },
+    toxic: { name: 'Toxic Pack', emoji: '☠️', cost: 22000000, seeds: ['poison_apple', 'acid_berry', 'venom_citrus'], rarity: 'toxic' },
+    crystal: { name: 'Crystal Pack', emoji: '💎', cost: 25000000, seeds: ['diamond_fruit', 'ruby_berry', 'emerald_grape'], rarity: 'crystal' },
+    shadow: { name: 'Shadow Pack', emoji: '👤', cost: 28000000, seeds: ['dark_apple', 'shadow_berry', 'void_fruit'], rarity: 'shadow' },
+    light: { name: 'Light Pack', emoji: '☀️', cost: 30000000, seeds: ['sun_fruit', 'beam_berry', 'radiant_citrus'], rarity: 'light' },
+    metal: { name: 'Metal Pack', emoji: '⚙️', cost: 32000000, seeds: ['steel_apple', 'iron_berry', 'copper_citrus'], rarity: 'metal' },
+    nature: { name: 'Nature Pack', emoji: '🌍', cost: 35000000, seeds: ['earth_fruit', 'wind_berry', 'root_apple'], rarity: 'nature' },
+    sky: { name: 'Sky Pack', emoji: '☁️', cost: 38000000, seeds: ['cloud_fruit', 'storm_berry', 'lightning_grape'], rarity: 'sky' },
+    rainbow: { name: 'Rainbow Pack', emoji: '🌈', cost: 40000000, seeds: ['spectrum_fruit', 'prism_berry', 'aurora_citrus'], rarity: 'rainbow' },
+    candy: { name: 'Candy Pack', emoji: '🍭', cost: 50000000, seeds: ['candy_blossom', 'sugar_berry', 'lollipop_fruit'], rarity: 'candy' }
+  }
+};
+
+// Game State
+let gameState = {
+  money: GAME_CONFIG.STARTING_MONEY,
+  inventory: {},
+  fruits: {},
+  seedPacks: {},
+  selectedSeed: null,
+  deleteMode: false,
+  trowelMode: false,
+  selectedPlant: null,
+  garden: [],
+  favoritedPlants: new Set(),
+  quests: [],
+  completedQuests: [],
+  totalHarvested: {}
+};
+
+// Initialize inventory
+Object.keys(GAME_CONFIG.SEEDS).forEach(seedType => {
+  gameState.inventory[seedType] = 0;
+  gameState.fruits[seedType] = 0;
+  gameState.totalHarvested[seedType] = 0;
+});
+
+// Initialize seed packs
+gameState.seedPacks = {
+  prehistoric: 0,
+  celestial: 0,
+  quantum: 0,
+  divine: 0,
+  elemental: 0,
+  mythical: 0,
+  cosmic: 0,
+  infinity: 0,
+  reality: 0,
+  transcendent: 0,
+  ultimate: 0,
+  ocean: 0,
+  forest: 0,
+  desert: 0,
+  arctic: 0,
+  volcanic: 0,
+  toxic: 0,
+  crystal: 0,
+  shadow: 0,
+  light: 0,
+  metal: 0,
+  nature: 0,
+  sky: 0,
+  rainbow: 0,
+  candy: 0
+};
+
+// Initialize garden
+gameState.garden = Array(GAME_CONFIG.GARDEN_SIZE).fill(null).map(() => ({
+  plant: null,
+  remainingTime: 0,
+  harvestCount: 0,
+  maxHarvests: 0
+}));
+
+// Initialize quests
+gameState.quests = [
+  {
+    id: 'first_harvest',
+    title: 'First Harvest',
+    description: 'Harvest 5 common fruits',
+    requirements: { harvestRarity: { common: 5 } },
+    progress: { harvestRarity: { common: 0 } },
+    reward: { type: 'seedPack', packType: 'prehistoric', amount: 1 },
+    completed: false
+  },
+  {
+    id: 'rare_collector',
+    title: 'Rare Collector',
+    description: 'Harvest 4 rare fruits',
+    requirements: { harvestRarity: { rare: 4 } },
+    progress: { harvestRarity: { rare: 0 } },
+    reward: { type: 'seedPack', packType: 'prehistoric', amount: 2 },
+    completed: false
+  },
+  {
+    id: 'wealthy_farmer',
+    title: 'Wealthy Farmer',
+    description: 'Accumulate 10,000 credits',
+    requirements: { money: 10000 },
+    progress: { money: 0 },
+    reward: { type: 'seedPack', packType: 'prehistoric', amount: 3 },
+    completed: false
+  },
+  {
+    id: 'epic_gardener',
+    title: 'Epic Gardener',
+    description: 'Harvest 3 epic fruits',
+    requirements: { harvestRarity: { epic: 3 } },
+    progress: { harvestRarity: { epic: 0 } },
+    reward: { type: 'seedPack', packType: 'prehistoric', amount: 2 },
+    completed: false
+  },
+  {
+    id: 'legendary_master',
+    title: 'Legendary Master',
+    description: 'Harvest 2 legendary fruits',
+    requirements: { harvestRarity: { legendary: 2 } },
+    progress: { harvestRarity: { legendary: 0 } },
+    reward: { type: 'seedPack', packType: 'prehistoric', amount: 4 },
+    completed: false
+  }
+];
+
+// Utility Functions
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function showNotification(message, type = 'info', duration = GAME_CONFIG.NOTIFICATION_DURATION) {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  
+  document.getElementById('notification-container').appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 10);
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, duration);
+}
+
+// Game Logic Functions
+function canAfford(cost) {
+  return gameState.money >= cost;
+}
+
+function updateMoney(amount) {
+  gameState.money += amount;
+  updateQuestProgress('money', {});
+  updateUI();
+}
+
+function updateInventory(seedType, amount) {
+  gameState.inventory[seedType] = Math.max(0, gameState.inventory[seedType] + amount);
+  updateUI();
+}
+
+function updateFruits(fruitType, amount) {
+  gameState.fruits[fruitType] = Math.max(0, gameState.fruits[fruitType] + amount);
+  updateUI();
+}
+
+function updateTotalHarvested(fruitType, amount) {
+  gameState.totalHarvested[fruitType] = (gameState.totalHarvested[fruitType] || 0) + amount;
+}
+
+function updateQuestProgress(type, data) {
+  gameState.quests.forEach(quest => {
+    if (quest.completed) return;
+    
+    if (type === 'harvestRarity' && quest.requirements.harvestRarity) {
+      const rarity = data.rarity;
+      if (quest.requirements.harvestRarity[rarity]) {
+        quest.progress.harvestRarity = quest.progress.harvestRarity || {};
+        quest.progress.harvestRarity[rarity] = (quest.progress.harvestRarity[rarity] || 0) + 1;
+      }
+    }
+    
+    if (type === 'money' && quest.requirements.money) {
+      quest.progress.money = Math.max(quest.progress.money || 0, gameState.money);
+    }
+    
+    checkQuestCompletion(quest);
+  });
+}
+
+function checkQuestCompletion(quest) {
+  let completed = true;
+  
+  if (quest.requirements.harvestRarity) {
+    Object.keys(quest.requirements.harvestRarity).forEach(rarity => {
+      const required = quest.requirements.harvestRarity[rarity];
+      const current = (quest.progress.harvestRarity && quest.progress.harvestRarity[rarity]) || 0;
+      if (current < required) completed = false;
+    });
+  }
+  
+  if (quest.requirements.money) {
+    const current = quest.progress.money || 0;
+    if (current < quest.requirements.money) completed = false;
+  }
+  
+  if (completed && !quest.completed) {
+    quest.completed = true;
+    completeQuest(quest);
+  }
+}
+
+function completeQuest(quest) {
+  gameState.completedQuests.push(quest.id);
+  
+  if (quest.reward.type === 'money') {
+    updateMoney(quest.reward.amount);
+    showNotification(`🎉 Quest completed! Earned ${quest.reward.amount} credits!`, 'success', 5000);
+  } else if (quest.reward.type === 'seedPack') {
+    gameState.seedPacks[quest.reward.packType] += quest.reward.amount;
+    showNotification(`🎉 Quest completed! Earned ${quest.reward.amount} Prehistoric Seed Pack(s)! 🦕`, 'success', 5000);
+  }
+  
+  renderQuests();
+  renderSeedPacks();
+}
+
+// Garden Functions
+function plantSeed(index, seedType) {
+  const seedConfig = GAME_CONFIG.SEEDS[seedType];
+  
+  if (!seedConfig) {
+    showNotification(`Invalid seed type: ${seedType}!`, 'error');
+    return;
+  }
+  
+  if (gameState.inventory[seedType] <= 0) {
+    showNotification(`No ${seedConfig.name} seeds in inventory!`, 'warning');
+    return;
+  }
+  
+  const plot = gameState.garden[index];
+  plot.plant = seedType;
+  plot.remainingTime = seedConfig.growTime;
+  plot.harvestCount = 0;
+  plot.maxHarvests = seedConfig.multiHarvest ? seedConfig.maxHarvests : 1;
+  
+  updateInventory(seedType, -1);
+  
+  let plantMessage = `Planted ${seedConfig.emoji} ${seedConfig.name}!`;
+  if (seedConfig.maxHarvests === Infinity) {
+    plantMessage += ' ♾️ Infinite harvests!';
+  }
+  
+  showNotification(plantMessage, 'success');
+  
+  // Auto-select another seed if we run out
+  if (gameState.inventory[seedType] <= 0) {
+    const availableSeed = Object.keys(gameState.inventory).find(seed => 
+      gameState.inventory[seed] > 0
+    );
+    
+    if (availableSeed) {
+      gameState.selectedSeed = availableSeed;
+      const newConfig = GAME_CONFIG.SEEDS[availableSeed];
+      showNotification(`Auto-selected ${newConfig.emoji} ${newConfig.name}`, 'info');
+    } else {
+      gameState.selectedSeed = null;
+    }
+  }
+  
+  renderGarden();
+  updateUI();
+}
+
+function harvestPlot(index) {
+  const plot = gameState.garden[index];
+  const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+  
+  // Add fruit to inventory
+  updateFruits(plot.plant, 1);
+  updateTotalHarvested(plot.plant, 1);
+  
+  // Update quest progress
+  updateQuestProgress('harvestRarity', { rarity: seedConfig.rarity });
+  
+  let harvestMessage = `Harvested ${seedConfig.emoji} ${seedConfig.name}! Added to inventory.`;
+  
+  if (seedConfig.multiHarvest && (seedConfig.maxHarvests === Infinity || plot.harvestCount < seedConfig.maxHarvests - 1)) {
+    plot.harvestCount++;
+    plot.remainingTime = seedConfig.growTime;
+    
+    if (seedConfig.maxHarvests === Infinity) {
+      harvestMessage += ` (Harvest #${plot.harvestCount + 1} - Infinite!) ♾️`;
+    } else {
+      harvestMessage += ` (${plot.harvestCount + 1}/${seedConfig.maxHarvests})`;
+    }
+  } else {
+    if (seedConfig.permanent) {
+      plot.harvestCount = 0;
+      plot.remainingTime = seedConfig.growTime;
+      harvestMessage += ` Plant will regrow permanently! ✨`;
+    } else {
+      plot.plant = null;
+      plot.remainingTime = 0;
+      plot.harvestCount = 0;
+      plot.maxHarvests = 0;
+      gameState.favoritedPlants.delete(index);
+    }
+  }
+  
+  showNotification(harvestMessage, 'success');
+  renderGarden();
+  updateUI();
+}
+
+function handlePlotClick(index) {
+  const plot = gameState.garden[index];
+  
+  if (gameState.deleteMode) {
+    if (plot.plant) {
+      const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+      plot.plant = null;
+      plot.remainingTime = 0;
+      plot.harvestCount = 0;
+      plot.maxHarvests = 0;
+      gameState.favoritedPlants.delete(index);
+      showNotification(`Removed ${seedConfig.emoji} ${seedConfig.name}!`, 'warning');
+      renderGarden();
+    }
+  } else if (gameState.trowelMode) {
+    if (plot.plant && gameState.selectedPlant === null) {
+      gameState.selectedPlant = index;
+      const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+      showNotification(`Selected ${seedConfig.emoji} ${seedConfig.name} to move!`, 'info');
+      renderGarden();
+    } else if (gameState.selectedPlant !== null) {
+      movePlant(gameState.selectedPlant, index);
+    }
+  } else if (!plot.plant) {
+    if (gameState.selectedSeed) {
+      const seedConfig = GAME_CONFIG.SEEDS[gameState.selectedSeed];
+      if (seedConfig && gameState.inventory[gameState.selectedSeed] > 0) {
+        plantSeed(index, gameState.selectedSeed);
+      } else {
+        showNotification(`No ${seedConfig ? seedConfig.name : 'selected'} seeds in inventory!`, 'warning');
+      }
+    } else {
+      showNotification('Select a seed packet first!', 'warning');
+    }
+  } else if (plot.remainingTime <= 0) {
+    harvestPlot(index);
+  } else {
+    showNotification('Plant is still growing!', 'warning');
+  }
+}
+
+function handlePlotDoubleClick(index) {
+  const plot = gameState.garden[index];
+  
+  if (plot.plant && plot.remainingTime <= 0) {
+    if (gameState.favoritedPlants.has(index)) {
+      gameState.favoritedPlants.delete(index);
+    } else {
+      gameState.favoritedPlants.add(index);
+    }
+    
+    const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+    const isFavorited = gameState.favoritedPlants.has(index);
+    
+    showNotification(
+      `${seedConfig.emoji} ${seedConfig.name} ${isFavorited ? 'favorited' : 'unfavorited'}!`,
+      isFavorited ? 'success' : 'info'
+    );
+    renderGarden();
+  }
+}
+
+function movePlant(fromIndex, toIndex) {
+  const fromPlot = gameState.garden[fromIndex];
+  const toPlot = gameState.garden[toIndex];
+  
+  if (!fromPlot.plant) {
+    showNotification('No plant to move!', 'error');
+    return;
+  }
+  
+  if (toPlot.plant) {
+    showNotification('Destination plot is not empty!', 'warning');
+    return;
+  }
+  
+  // Move the plant
+  toPlot.plant = fromPlot.plant;
+  toPlot.remainingTime = fromPlot.remainingTime;
+  toPlot.harvestCount = fromPlot.harvestCount;
+  toPlot.maxHarvests = fromPlot.maxHarvests;
+  
+  // Move favorite status
+  if (gameState.favoritedPlants.has(fromIndex)) {
+    gameState.favoritedPlants.delete(fromIndex);
+    gameState.favoritedPlants.add(toIndex);
+  }
+  
+  // Clear the source plot
+  fromPlot.plant = null;
+  fromPlot.remainingTime = 0;
+  fromPlot.harvestCount = 0;
+  fromPlot.maxHarvests = 0;
+  
+  gameState.selectedPlant = null;
+  
+  const seedConfig = GAME_CONFIG.SEEDS[toPlot.plant];
+  showNotification(`Moved ${seedConfig.emoji} ${seedConfig.name}!`, 'success');
+  
+  renderGarden();
+}
+
+// Shop Functions
+function openShop() {
+  document.getElementById('shop-overlay').classList.add('active');
+  renderShop();
+}
+
+function closeShop() {
+  document.getElementById('shop-overlay').classList.remove('active');
+}
+
+function buySeed(seedType) {
+  const seedConfig = GAME_CONFIG.SEEDS[seedType];
+  
+  if (!canAfford(seedConfig.cost)) {
+    showNotification('Not enough credits!', 'error');
+    return;
+  }
+  
+  updateMoney(-seedConfig.cost);
+  updateInventory(seedType, 1);
+  
+  gameState.selectedSeed = seedType;
+  
+  showNotification(`Bought ${seedConfig.emoji} ${seedConfig.name} seed!`, 'success');
+  
+  renderShop();
+  updateUI();
+}
+
+// UI Functions
+function sellAllFruits() {
+  let totalSold = 0;
+  let totalEarned = 0;
+  
+  Object.entries(gameState.fruits).forEach(([fruitType, count]) => {
+    if (count > 0) {
+      const seedConfig = GAME_CONFIG.SEEDS[fruitType];
+      const earnings = count * seedConfig.reward;
+      totalSold += count;
+      totalEarned += earnings;
+      updateFruits(fruitType, -count);
+    }
+  });
+  
+  if (totalSold === 0) {
+    showNotification('No fruits to sell!', 'warning');
+    return;
+  }
+  
+  updateMoney(totalEarned);
+  showNotification(`Sold ${totalSold} fruits for ${formatNumber(totalEarned)} credits!`, 'success');
+  
+  updateUI();
+}
+
+function toggleDeleteMode() {
+  gameState.deleteMode = !gameState.deleteMode;
+  if (gameState.deleteMode) {
+    gameState.trowelMode = false;
+    gameState.selectedPlant = null;
+    updateTrowelButton();
+  }
+  updateDeleteButton();
+  renderGarden();
+  renderInventory();
+  
+  const mode = gameState.deleteMode ? 'activated' : 'deactivated';
+  showNotification(`Delete mode ${mode}`, 'info');
+}
+
+function updateDeleteButton() {
+  const deleteButton = document.getElementById('delete-toggle');
+  if (deleteButton) {
+    deleteButton.textContent = gameState.deleteMode ? '🗑️ Delete ON' : '🗑️ Delete Tool';
+    deleteButton.style.background = gameState.deleteMode ? '#f44336' : '#9c27b0';
+  }
+}
+
+function toggleTrowelMode() {
+  gameState.trowelMode = !gameState.trowelMode;
+  if (gameState.trowelMode) {
+    gameState.deleteMode = false;
+    gameState.selectedPlant = null;
+    updateDeleteButton();
+  } else {
+    gameState.selectedPlant = null;
+  }
+  updateTrowelButton();
+  renderGarden();
+  renderInventory();
+  
+  const mode = gameState.trowelMode ? 'activated' : 'deactivated';
+  showNotification(`Trowel mode ${mode}`, 'info');
+}
+
+function updateTrowelButton() {
+  const trowelButton = document.getElementById('trowel-toggle');
+  if (trowelButton) {
+    trowelButton.textContent = gameState.trowelMode ? '🥄 Trowel ON' : '🥄 Trowel';
+    trowelButton.style.background = gameState.trowelMode ? '#ff9800' : '#9c27b0';
+  }
+}
+
+function updateUI() {
+  const moneyElement = document.getElementById('money-display');
+  if (moneyElement) {
+    moneyElement.textContent = formatNumber(gameState.money);
+  }
+  
+  renderShop();
+  renderInventory();
+  renderFruits();
+  renderQuests();
+  renderSeedPacks();
+}
+
+// Render Functions
+function renderGarden() {
+  const container = document.getElementById('garden-grid');
+  container.innerHTML = '';
+  
+  gameState.garden.forEach((plot, index) => {
+    const plotElement = document.createElement('div');
+    plotElement.className = 'garden-plot';
+    
+    // Add delete mode styling
+    if (gameState.deleteMode && plot.plant) {
+      plotElement.style.border = '2px solid #ff4444';
+      plotElement.style.cursor = 'not-allowed';
+    }
+    
+    // Add trowel mode styling
+    if (gameState.trowelMode && plot.plant) {
+      plotElement.style.border = '2px solid #ff9800';
+      plotElement.style.cursor = 'move';
+    }
+    
+    // Highlight selected plant in trowel mode
+    if (gameState.trowelMode && gameState.selectedPlant === index) {
+      plotElement.style.border = '3px solid #ffeb3b';
+      plotElement.style.boxShadow = '0 0 10px #ffeb3b';
+    }
+    
+    if (plot.plant) {
+      const seed = GAME_CONFIG.SEEDS[plot.plant];
+      
+      // Show seeds next to fruits while growing, fruits when ready
+      if (plot.remainingTime > 0) {
+        plotElement.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 0.9em;">
+            <span>🌱</span>
+            <span style="font-size: 0.8em;">${seed.emoji}</span>
+          </div>
+        `;
+        plotElement.classList.add('growing');
+        plotElement.title = `${seed.name} growing (${plot.remainingTime}s left)`;
+        
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        const progress = ((seed.growTime - plot.remainingTime) / seed.growTime) * 100;
+        progressBar.style.width = `${progress}%`;
+        plotElement.appendChild(progressBar);
+        
+        // Add timer display
+        const timer = document.createElement('div');
+        timer.textContent = plot.remainingTime;
+        timer.style.cssText = `
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          background: rgba(0,0,0,0.8);
+          color: white;
+          font-size: 10px;
+          font-weight: bold;
+          padding: 2px 4px;
+          border-radius: 4px;
+          min-width: 16px;
+          text-align: center;
+        `;
+        plotElement.appendChild(timer);
+      } else {
+        plotElement.textContent = seed.emoji;
+        plotElement.classList.add('ready');
+        plotElement.title = `${seed.name} ready to harvest - Double-click to favorite!`;
+        
+        if (seed.multiHarvest && plot.harvestCount > 0) {
+          const counter = document.createElement('div');
+          counter.className = 'harvest-counter';
+          if (seed.maxHarvests === Infinity) {
+            counter.textContent = '∞';
+            counter.title = `Infinite harvests! Current: ${plot.harvestCount + 1}`;
+          } else {
+            counter.textContent = plot.harvestCount + 1;
+          }
+          plotElement.appendChild(counter);
+        }
+      }
+      
+      // Add permanent plant indicator
+      if (seed.permanent) {
+        plotElement.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.5)';
+      }
+      
+      // Add favorited styling
+      if (gameState.favoritedPlants.has(index)) {
+        plotElement.classList.add('favorited');
+      }
+    } else {
+      plotElement.title = 'Empty plot - click to plant';
+    }
+    
+    // Add event listeners
+    plotElement.addEventListener('click', () => handlePlotClick(index));
+    plotElement.addEventListener('dblclick', () => handlePlotDoubleClick(index));
+    container.appendChild(plotElement);
+  });
+}
+
+function renderShop() {
+  const container = document.getElementById('shop-display');
+  container.innerHTML = '';
+  
+  const rarityOrder = ['common', 'rare', 'epic', 'legendary', 'mythic'];
+  const rarityColors = {
+    common: '#8bc34a',
+    rare: '#2196f3',
+    epic: '#673ab7',
+    legendary: '#9c27b0',
+    mythic: '#e91e63',
+    prehistoric: '#ff4500',
+    celestial: '#4169e1',
+    quantum: '#8a2be2',
+    divine: '#ffd700',
+    elemental: '#ff1493',
+    mythical: '#dc143c',
+    cosmic: '#000080',
+    infinity: '#800080',
+    reality: '#ff6347',
+    transcendent: '#ff69b4',
+    ultimate: '#ff0000'
+  };
+  
+  rarityOrder.forEach(rarity => {
+    const seeds = Object.entries(GAME_CONFIG.SEEDS).filter(([_, config]) => 
+      config.rarity === rarity && !config.questOnly && !config.packOnly
+    );
+    
+    if (seeds.length > 0) {
+      // Create rarity section
+      const section = document.createElement('div');
+      section.className = 'rarity-section';
+      
+      // Create header
+      const header = document.createElement('div');
+      header.className = 'rarity-header';
+      header.textContent = `${rarity.charAt(0).toUpperCase() + rarity.slice(1)} Seeds`;
+      header.style.backgroundColor = rarityColors[rarity];
+      section.appendChild(header);
+      
+      // Create grid
+      const grid = document.createElement('div');
+      grid.className = 'shop-grid';
+      
+      seeds.forEach(([seedType, config]) => {
+        const item = document.createElement('div');
+        item.className = 'shop-item';
+        
+        const isAffordable = canAfford(config.cost);
+        if (!isAffordable) {
+          item.classList.add('disabled');
+        }
+        
+        item.innerHTML = `
+          <div class="rarity-badge rarity-${config.rarity}">${config.rarity}</div>
+          <div class="seed-display">
+            <span class="seed-icon">🌱</span>
+            <span class="fruit-icon">${config.emoji}</span>
+          </div>
+          <div class="name">${config.name}</div>
+          <div class="cost">${formatNumber(config.cost)} credits</div>
+          <div class="details">
+            ⏱️ ${config.growTime}s grow time<br>
+            💰 ${formatNumber(config.reward)} credits reward
+            ${config.multiHarvest ? `<br>🔄 ${config.maxHarvests === Infinity ? 'Infinite harvests ♾️' : config.maxHarvests + ' harvests'}` : ''}
+            ${config.permanent ? '<br>♾️ Permanent plant' : ''}
+          </div>
+        `;
+        
+        if (isAffordable) {
+          item.addEventListener('click', () => buySeed(seedType));
+        }
+        
+        grid.appendChild(item);
+      });
+      
+      section.appendChild(grid);
+      container.appendChild(section);
+    }
+  });
+}
+
+function renderInventory() {
+  const container = document.getElementById('inventory-display');
+  container.innerHTML = '';
+  
+  const hasSeeds = Object.values(gameState.inventory).some(count => count > 0);
+  
+  if (!hasSeeds) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'inventory-empty';
+    emptyMessage.textContent = 'No seeds yet - visit the shop to buy some!';
+    container.appendChild(emptyMessage);
+    return;
+  }
+  
+  // Show mode info
+  if (gameState.deleteMode) {
+    const deleteInfo = document.createElement('div');
+    deleteInfo.style.cssText = `
+      text-align: center;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: #f44336;
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9em;
+    `;
+    deleteInfo.innerHTML = `🗑️ Delete Mode Active`;
+    container.appendChild(deleteInfo);
+  } else if (gameState.trowelMode) {
+    const trowelInfo = document.createElement('div');
+    trowelInfo.style.cssText = `
+      text-align: center;
+      padding: 8px;
+      margin-bottom: 12px;
+      background: #ff9800;
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9em;
+    `;
+    trowelInfo.innerHTML = gameState.selectedPlant !== null 
+      ? `🥄 Trowel Mode - Click destination`
+      : `🥄 Trowel Mode - Click plant to select`;
+    container.appendChild(trowelInfo);
+  } else if (gameState.selectedSeed) {
+    const selectedConfig = GAME_CONFIG.SEEDS[gameState.selectedSeed];
+    if (selectedConfig) {
+      const selectedInfo = document.createElement('div');
+      selectedInfo.style.cssText = `
+        text-align: center;
+        padding: 8px;
+        margin-bottom: 12px;
+        background: #4caf50;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 0.9em;
+      `;
+      selectedInfo.innerHTML = `Selected: 🌱${selectedConfig.emoji} ${selectedConfig.name}`;
+      container.appendChild(selectedInfo);
+    }
+  }
+  
+  // Show seeds
+  const rarityOrder = ['common', 'rare', 'epic', 'legendary', 'mythic', 'prehistoric', 'celestial', 'quantum', 'divine', 'elemental', 'mythical', 'cosmic', 'infinity', 'reality', 'transcendent', 'ultimate', 'ocean', 'forest', 'desert', 'arctic', 'volcanic', 'toxic', 'crystal', 'shadow', 'light', 'metal', 'nature', 'sky', 'rainbow', 'candy'];
+  const rarityColors = {
+    common: '#8bc34a',
+    rare: '#2196f3',
+    epic: '#673ab7',
+    legendary: '#9c27b0',
+    mythic: '#e91e63',
+    prehistoric: '#ff4500',
+    celestial: '#4169e1',
+    quantum: '#8a2be2',
+    divine: '#ffd700',
+    elemental: '#ff1493',
+    mythical: '#dc143c',
+    cosmic: '#000080',
+    infinity: '#800080',
+    reality: '#ff6347',
+    transcendent: '#ff69b4',
+    ultimate: '#ff0000',
+    ocean: '#006994',
+    forest: '#228b22',
+    desert: '#daa520',
+    arctic: '#4682b4',
+    volcanic: '#dc143c',
+    toxic: '#32cd32',
+    crystal: '#9370db',
+    shadow: '#2f4f4f',
+    light: '#fffacd',
+    metal: '#708090',
+    nature: '#9acd32',
+    sky: '#87ceeb',
+    rainbow: '#ff1493',
+    candy: '#ff69b4'
+  };
+  
+  rarityOrder.forEach(rarity => {
+    const raritySeeds = Object.entries(gameState.inventory).filter(([seedType, count]) => {
+      return count > 0 && GAME_CONFIG.SEEDS[seedType].rarity === rarity;
+    });
+    
+    if (raritySeeds.length > 0) {
+      raritySeeds.forEach(([seedType, count]) => {
+        const config = GAME_CONFIG.SEEDS[seedType];
+        const seedItem = document.createElement('div');
+        seedItem.className = 'seed-packet';
+        
+        if (seedType === gameState.selectedSeed) {
+          seedItem.classList.add('selected');
+        }
+        
+        seedItem.innerHTML = `
+          <div class="emoji" style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+            <span>🌱</span>
+            <span style="font-size: 0.8em;">${config.emoji}</span>
+          </div>
+          <div class="count">${count}</div>
+          <div class="name">${config.name} Seeds</div>
+          <div class="rarity" style="color: ${rarityColors[rarity]}">${config.rarity}</div>
+        `;
+        
+        seedItem.title = `Click to select ${config.name} seeds for planting`;
+        seedItem.style.borderLeftColor = rarityColors[rarity];
+        
+        seedItem.addEventListener('click', () => {
+          if (gameState.deleteMode) {
+            gameState.deleteMode = false;
+            updateDeleteButton();
+          }
+          if (gameState.trowelMode) {
+            gameState.trowelMode = false;
+            gameState.selectedPlant = null;
+            updateTrowelButton();
+          }
+          gameState.selectedSeed = seedType;
+          showNotification(`Selected ${config.name} seeds for planting!`, 'success');
+          renderInventory();
+          renderFruits();
+        });
+        
+        container.appendChild(seedItem);
+      });
+    }
+  });
+}
+
+function renderFruits() {
+  const container = document.getElementById('fruits-display');
+  container.innerHTML = '';
+  
+  const hasFruits = Object.values(gameState.fruits).some(count => count > 0);
+  
+  if (!hasFruits) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'inventory-empty';
+    emptyMessage.textContent = 'No fruits yet - harvest some from your garden!';
+    container.appendChild(emptyMessage);
+    return;
+  }
+  
+  // Show total fruit count and value
+  const totalFruits = Object.values(gameState.fruits).reduce((sum, count) => sum + count, 0);
+  const totalValue = Object.entries(gameState.fruits).reduce((sum, [fruitType, count]) => {
+    return sum + (count * GAME_CONFIG.SEEDS[fruitType].reward);
+  }, 0);
+  
+  const summaryInfo = document.createElement('div');
+  summaryInfo.style.cssText = `
+    text-align: center;
+    padding: 8px;
+    margin-bottom: 12px;
+    background: #4caf50;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
+  `;
+  summaryInfo.innerHTML = `${totalFruits} fruits • ${formatNumber(totalValue)} credits value`;
+  container.appendChild(summaryInfo);
+  
+  // Show individual fruits
+  const rarityOrder = ['common', 'rare', 'epic', 'legendary', 'mythic', 'prehistoric', 'celestial', 'quantum', 'divine', 'elemental', 'mythical', 'cosmic', 'infinity', 'reality', 'transcendent', 'ultimate', 'ocean', 'forest', 'desert', 'arctic', 'volcanic', 'toxic', 'crystal', 'shadow', 'light', 'metal', 'nature', 'sky', 'rainbow', 'candy'];
+  const rarityColors = {
+    common: '#8bc34a',
+    rare: '#2196f3',
+    epic: '#673ab7',
+    legendary: '#9c27b0',
+    mythic: '#e91e63',
+    prehistoric: '#ff4500',
+    celestial: '#4169e1',
+    quantum: '#8a2be2',
+    divine: '#ffd700',
+    elemental: '#ff1493',
+    mythical: '#dc143c',
+    cosmic: '#000080',
+    infinity: '#800080',
+    reality: '#ff6347',
+    transcendent: '#ff69b4',
+    ultimate: '#ff0000',
+    ocean: '#006994',
+    forest: '#228b22',
+    desert: '#daa520',
+    arctic: '#4682b4',
+    volcanic: '#dc143c',
+    toxic: '#32cd32',
+    crystal: '#9370db',
+    shadow: '#2f4f4f',
+    light: '#fffacd',
+    metal: '#708090',
+    nature: '#9acd32',
+    sky: '#87ceeb',
+    rainbow: '#ff1493',
+    candy: '#ff69b4'
+  };
+  
+  rarityOrder.forEach(rarity => {
+    const rarityFruits = Object.entries(gameState.fruits).filter(([fruitType, count]) => {
+      return count > 0 && GAME_CONFIG.SEEDS[fruitType].rarity === rarity;
+    });
+    
+    if (rarityFruits.length > 0) {
+      rarityFruits.forEach(([fruitType, count]) => {
+        const config = GAME_CONFIG.SEEDS[fruitType];
+        const fruitItem = document.createElement('div');
+        fruitItem.className = 'seed-packet';
+        
+        const totalValue = count * config.reward;
+        
+        fruitItem.innerHTML = `
+          <div class="emoji">${config.emoji}</div>
+          <div class="count">${count}</div>
+          <div class="name">${config.name}</div>
+          <div class="rarity" style="color: ${rarityColors[rarity]}">${formatNumber(totalValue)} credits</div>
+        `;
+        
+        fruitItem.title = `${config.name} - ${formatNumber(config.reward)} credits each`;
+        fruitItem.style.borderLeftColor = rarityColors[rarity];
+        
+        // Add click to sell individual fruit type
+        fruitItem.addEventListener('click', () => {
+          if (count > 0) {
+            const earnings = count * config.reward;
+            updateMoney(earnings);
+            updateFruits(fruitType, -count);
+            showNotification(`Sold ${count} ${config.emoji} ${config.name} for ${formatNumber(earnings)} credits!`, 'success');
+            renderFruits();
+            updateUI();
+          }
+        });
+        
+        container.appendChild(fruitItem);
+      });
+    }
+  });
+}
+
+function renderQuests() {
+  const container = document.getElementById('quests-display');
+  container.innerHTML = '';
+  
+  // Show active quests
+  const activeQuests = gameState.quests.filter(quest => !quest.completed);
+  if (activeQuests.length > 0) {
+    activeQuests.forEach(quest => {
+      const questElement = document.createElement('div');
+      questElement.className = 'quest-item';
+      
+      // Calculate progress percentage
+      let progressPercent = 0;
+      let progressText = '';
+      
+      if (quest.requirements.harvestRarity) {
+        const rarity = Object.keys(quest.requirements.harvestRarity)[0];
+        const required = quest.requirements.harvestRarity[rarity];
+        const current = (quest.progress.harvestRarity && quest.progress.harvestRarity[rarity]) || 0;
+        progressPercent = Math.min(100, (current / required) * 100);
+        progressText = `${current}/${required} ${rarity} fruits harvested`;
+      } else if (quest.requirements.money) {
+        const required = quest.requirements.money;
+        const current = quest.progress.money || 0;
+        progressPercent = Math.min(100, (current / required) * 100);
+        progressText = `${formatNumber(current)}/${formatNumber(required)} credits`;
+      }
+      
+      questElement.innerHTML = `
+        <div class="quest-title">${quest.title}</div>
+        <div class="quest-description">${quest.description}</div>
+        <div class="quest-progress">
+          <div class="quest-progress-bar" style="width: ${progressPercent}%"></div>
+        </div>
+        <div class="quest-progress-text">${progressText}</div>
+        <div class="quest-reward">🎁 Reward: ${quest.reward.type === 'money' ? formatNumber(quest.reward.amount) + ' credits' : quest.reward.amount + ' Prehistoric Seed Pack(s) 🦕'}</div>
+      `;
+      
+      container.appendChild(questElement);
+    });
+  }
+  
+  // Show completed quests count
+  const completedCount = gameState.completedQuests.length;
+  if (completedCount > 0) {
+    const completedInfo = document.createElement('div');
+    completedInfo.style.cssText = `
+      text-align: center;
+      padding: 8px;
+      margin-top: 12px;
+      background: #4caf50;
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9em;
+    `;
+    completedInfo.innerHTML = `✅ ${completedCount} quest(s) completed`;
+    container.appendChild(completedInfo);
+  }
+}
+
+function renderSeedPacks() {
+  const container = document.getElementById('seed-packs-display');
+  container.innerHTML = '';
+  
+  const hasAnyPacks = Object.values(gameState.seedPacks).some(count => count > 0);
+  
+  if (!hasAnyPacks) {
+    const emptyMessage = document.createElement('div');
+    emptyMessage.className = 'inventory-empty';
+    emptyMessage.textContent = 'No seed packs yet - complete quests or buy from the pack shop!';
+    container.appendChild(emptyMessage);
+    return;
+  }
+  
+  // Show all pack types that player has
+  Object.entries(gameState.seedPacks).forEach(([packType, count]) => {
+    if (count > 0) {
+      const packItem = document.createElement('div');
+      packItem.className = 'seed-pack';
+      
+      let packConfig;
+      if (packType === 'prehistoric') {
+        packConfig = { name: 'Prehistoric Seed Pack', emoji: '🦕' };
+      } else {
+        packConfig = GAME_CONFIG.SEED_PACKS[packType];
+      }
+      
+      packItem.innerHTML = `
+        <div class="emoji">${packConfig.emoji}</div>
+        <div class="count">${count}</div>
+        <div class="name">${packConfig.name}</div>
+      `;
+      
+      packItem.title = `Click to open and get random ${packType} seeds!`;
+      packItem.addEventListener('click', () => openSeedPack(packType));
+      
+      container.appendChild(packItem);
+    }
+  });
+}
+
+function openSeedPack(packType) {
+  if (gameState.seedPacks[packType] <= 0) {
+    showNotification(`No ${packType} seed packs to open!`, 'warning');
+    return;
+  }
+  
+  gameState.seedPacks[packType]--;
+  
+  let availableSeeds;
+  if (packType === 'prehistoric') {
+    availableSeeds = Object.keys(GAME_CONFIG.SEEDS).filter(seed => 
+      GAME_CONFIG.SEEDS[seed].rarity === 'prehistoric'
+    );
+  } else {
+    availableSeeds = GAME_CONFIG.SEED_PACKS[packType].seeds;
+  }
+  
+  const randomSeed = availableSeeds[Math.floor(Math.random() * availableSeeds.length)];
+  const seedConfig = GAME_CONFIG.SEEDS[randomSeed];
+  
+  updateInventory(randomSeed, 1);
+  
+  // Special message for candy pack
+  if (packType === 'candy') {
+    showNotification(`🍭✨ Opened Candy Pack! Got ${seedConfig.emoji} ${seedConfig.name} seed! Sweet! 🍬`, 'success', 5000);
+  } else {
+    showNotification(`🎉 Opened ${packType} seed pack! Got ${seedConfig.emoji} ${seedConfig.name} seed!`, 'success', 5000);
+  }
+  
+  renderSeedPacks();
+  renderInventory();
+}
+
+// Pack Shop Functions
+function openPackShop() {
+  document.getElementById('pack-shop-overlay').classList.add('active');
+  renderPackShop();
+}
+
+function closePackShop() {
+  document.getElementById('pack-shop-overlay').classList.remove('active');
+}
+
+function renderPackShop() {
+  const container = document.getElementById('pack-shop-display');
+  container.innerHTML = '';
+  
+  const packOrder = [
+    'celestial', 'quantum', 'divine', 'elemental', 'mythical', 'cosmic', 
+    'infinity', 'reality', 'transcendent', 'ultimate',
+    'ocean', 'forest', 'desert', 'arctic', 'volcanic', 'toxic',
+    'crystal', 'shadow', 'light', 'metal', 'nature', 'sky', 'rainbow', 'candy'
+  ];
+  
+  packOrder.forEach(packType => {
+    const packConfig = GAME_CONFIG.SEED_PACKS[packType];
+    const item = document.createElement('div');
+    item.className = 'shop-item';
+    
+    const isAffordable = canAfford(packConfig.cost);
+    if (!isAffordable) {
+      item.classList.add('disabled');
+    }
+    
+    // Special styling for candy pack
+    if (packType === 'candy') {
+      item.style.background = 'linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4)';
+      item.style.border = '3px solid #ffd700';
+      item.style.animation = 'shimmer 1.5s infinite';
+    }
+    
+    item.innerHTML = `
+      <div class="rarity-badge rarity-${packConfig.rarity}">${packConfig.rarity}</div>
+      <div class="seed-display">
+        <span style="font-size: 2em;">${packConfig.emoji}</span>
+      </div>
+      <div class="name">${packConfig.name}</div>
+      <div class="cost">${formatNumber(packConfig.cost)} credits</div>
+      <div class="details">
+        Contains 3 ${packConfig.rarity} seeds:<br>
+        ${packConfig.seeds.map(seedType => {
+          const seed = GAME_CONFIG.SEEDS[seedType];
+          return `${seed.emoji} ${seed.name}`;
+        }).join('<br>')}
+        ${packType === 'candy' ? '<br><b>🍭 THE ULTIMATE PACK! 🍭</b>' : ''}
+      </div>
+    `;
+    
+    if (isAffordable) {
+      item.addEventListener('click', () => buySeedPack(packType));
+    }
+    
+    container.appendChild(item);
+  });
+}
+
+function buySeedPack(packType) {
+  const packConfig = GAME_CONFIG.SEED_PACKS[packType];
+  
+  if (!canAfford(packConfig.cost)) {
+    showNotification('Not enough credits!', 'error');
+    return;
+  }
+  
+  updateMoney(-packConfig.cost);
+  gameState.seedPacks[packType]++;
+  
+  if (packType === 'candy') {
+    showNotification(`🍭🎉 Bought ${packConfig.emoji} ${packConfig.name}! The sweetest pack of all! 🍬✨`, 'success', 5000);
+  } else {
+    showNotification(`Bought ${packConfig.emoji} ${packConfig.name}!`, 'success');
+  }
+  
+  renderPackShop();
+  renderSeedPacks();
+  updateUI();
+}
+
+// Game Loop
+function gameTick() {
+  let hasChanges = false;
+  
+  gameState.garden.forEach((plot, index) => {
+    if (plot.plant && plot.remainingTime > 0) {
+      plot.remainingTime--;
+      hasChanges = true;
+      
+      if (plot.remainingTime === 0) {
+        const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+        console.log(`Plant ready: ${seedConfig.name} at plot ${index}`);
+      }
+    }
+  });
+  
+  if (hasChanges) {
+    renderGarden();
+  }
+}
+
+// Event Listeners
+document.addEventListener('click', (e) => {
+  const shopOverlay = document.getElementById('shop-overlay');
+  const shopModal = document.querySelector('.shop-modal');
+  const packShopOverlay = document.getElementById('pack-shop-overlay');
+  
+  if (e.target === shopOverlay && shopModal && !shopModal.contains(e.target)) {
+    closeShop();
+  }
+  
+  if (e.target === packShopOverlay && shopModal && !shopModal.contains(e.target)) {
+    closePackShop();
+  }
+});
+
+document.addEventListener('selectstart', (e) => {
+  // Check if target is a garden plot
+  let element = e.target;
+  while (element && element !== document) {
+    if (element.classList && element.classList.contains('garden-plot')) {
+      e.preventDefault();
+      break;
+    }
+    element = element.parentNode;
+  }
+});
+
+// Cookie/Save System Functions
+function saveGameState() {
+  try {
+    const saveData = {
+      money: gameState.money,
+      inventory: gameState.inventory,
+      fruits: gameState.fruits,
+      seedPacks: gameState.seedPacks,
+      garden: gameState.garden,
+      favoritedPlants: Array.from(gameState.favoritedPlants),
+      quests: gameState.quests,
+      completedQuests: gameState.completedQuests,
+      totalHarvested: gameState.totalHarvested,
+      saveTime: Date.now(),
+      version: '2.0'
+    };
+    
+    const saveString = JSON.stringify(saveData);
+    document.cookie = `gardenGame=${encodeURIComponent(saveString)}; expires=${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()}; path=/`;
+    
+    console.log('Game saved successfully');
+  } catch (error) {
+    console.error('Failed to save game:', error);
+    showNotification('Failed to save game progress!', 'error');
+  }
+}
+
+function loadGameState() {
+  try {
+    const cookies = document.cookie.split(';');
+    const gardenGameCookie = cookies.find(cookie => cookie.trim().startsWith('gardenGame='));
+    
+    if (!gardenGameCookie) {
+      console.log('No save data found, starting new game');
+      return false;
+    }
+    
+    const saveString = decodeURIComponent(gardenGameCookie.split('=')[1]);
+    const saveData = JSON.parse(saveString);
+    
+    // Validate save data version
+    if (!saveData.version) {
+      console.log('Old save format detected, starting fresh');
+      return false;
+    }
+    
+    // Load saved data
+    gameState.money = saveData.money || GAME_CONFIG.STARTING_MONEY;
+    gameState.inventory = { ...gameState.inventory, ...saveData.inventory };
+    gameState.fruits = { ...gameState.fruits, ...saveData.fruits };
+    gameState.seedPacks = { ...gameState.seedPacks, ...saveData.seedPacks };
+    gameState.garden = saveData.garden || gameState.garden;
+    gameState.favoritedPlants = new Set(saveData.favoritedPlants || []);
+    gameState.quests = saveData.quests || gameState.quests;
+    gameState.completedQuests = saveData.completedQuests || [];
+    gameState.totalHarvested = { ...gameState.totalHarvested, ...saveData.totalHarvested };
+    
+    // Calculate offline progress
+    const offlineTime = Math.floor((Date.now() - (saveData.saveTime || Date.now())) / 1000);
+    if (offlineTime > 0) {
+      processOfflineProgress(offlineTime);
+    }
+    
+    console.log('Game loaded successfully');
+    showNotification('🔄 Game progress loaded! Welcome back! 💾', 'success', 4000);
+    
+    if (offlineTime > 60) {
+      const offlineMinutes = Math.floor(offlineTime / 60);
+      showNotification(`⏰ You were away for ${offlineMinutes} minute(s)!`, 'info', 6000);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to load save data:', error);
+    showNotification('Failed to load save data, starting fresh!', 'warning');
+    return false;
+  }
+}
+
+function processOfflineProgress(offlineSeconds) {
+  let totalHarvested = 0;
+  let totalEarnings = 0;
+  const harvestedPlants = [];
+  
+  gameState.garden.forEach((plot, index) => {
+    if (plot.plant && plot.remainingTime > 0) {
+      const seedConfig = GAME_CONFIG.SEEDS[plot.plant];
+      
+      // Calculate how many times this plant could have been harvested
+      let timeRemaining = offlineSeconds;
+      let harvests = 0;
+      
+      // First harvest
+      if (timeRemaining >= plot.remainingTime) {
+        timeRemaining -= plot.remainingTime;
+        harvests++;
+        plot.remainingTime = 0;
+        
+        // Additional harvests for multi-harvest plants
+        if (seedConfig.multiHarvest || seedConfig.permanent) {
+          const additionalHarvests = Math.floor(timeRemaining / seedConfig.growTime);
+          harvests += additionalHarvests;
+          timeRemaining -= additionalHarvests * seedConfig.growTime;
+          plot.remainingTime = Math.max(0, seedConfig.growTime - timeRemaining);
+          
+          if (plot.remainingTime === 0 && timeRemaining > 0) {
+            plot.remainingTime = seedConfig.growTime - (timeRemaining % seedConfig.growTime);
+          }
+        } else {
+          // Single harvest plant - remove it
+          plot.plant = null;
+          plot.remainingTime = 0;
+          plot.harvestCount = 0;
+          plot.maxHarvests = 0;
+          gameState.favoritedPlants.delete(index);
+        }
+      } else {
+        // Plant still growing
+        plot.remainingTime = Math.max(0, plot.remainingTime - offlineSeconds);
+      }
+      
+      if (harvests > 0) {
+        // Add fruits and calculate earnings
+        updateFruits(plot.plant, harvests);
+        updateTotalHarvested(plot.plant, harvests);
+        const earnings = harvests * seedConfig.reward;
+        totalEarnings += earnings;
+        totalHarvested += harvests;
+        
+        harvestedPlants.push({
+          name: seedConfig.name,
+          emoji: seedConfig.emoji,
+          count: harvests,
+          earnings: earnings
+        });
+        
+        // Update harvest count for multi-harvest plants
+        if (seedConfig.multiHarvest && plot.plant) {
+          plot.harvestCount = (plot.harvestCount || 0) + harvests;
+        }
+      }
+    }
+  });
+  
+  // Show offline progress summary
+  if (totalHarvested > 0) {
+    showNotification(`🌾 Offline harvest: ${totalHarvested} plants grown! Check your fruits! 🍎`, 'success', 8000);
+    
+    // Show detailed breakdown for significant harvests
+    if (harvestedPlants.length > 0 && totalHarvested >= 5) {
+      setTimeout(() => {
+        const topHarvests = harvestedPlants
+          .sort((a, b) => b.earnings - a.earnings)
+          .slice(0, 3)
+          .map(plant => `${plant.emoji} ${plant.name} x${plant.count}`)
+          .join(', ');
+        showNotification(`🎉 Top offline harvests: ${topHarvests}`, 'info', 6000);
+      }, 4000);
+    }
+  }
+}
+
+function clearSaveData() {
+  document.cookie = 'gardenGame=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+  showNotification('💾 Save data cleared! Starting fresh!', 'warning', 4000);
+  location.reload();
+}
+
+// Auto-save functionality
+function setupAutoSave() {
+  // Save every 30 seconds
+  setInterval(() => {
+    saveGameState();
+  }, 30000);
+  
+  // Save when the page is about to be closed/refreshed
+  window.addEventListener('beforeunload', () => {
+    saveGameState();
+  });
+  
+  // Save when the page loses focus
+  window.addEventListener('blur', () => {
+    saveGameState();
+  });
+  
+  // Save when visibility changes (tab switching)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      saveGameState();
+    }
+  });
+}
+
+// Initialize Game
+function initGame() {
+  console.log('🌱 Starting A Garden Game v2.0 - Now with 64 Seed Packs!');
+  
+  // Try to load saved game first
+  const gameLoaded = loadGameState();
+  
+  renderGarden();
+  renderShop();
+  renderInventory();
+  renderFruits();
+  renderQuests();
+  renderSeedPacks();
+  updateUI();
+  
+  // Start game loop
+  setInterval(gameTick, GAME_CONFIG.TICK_INTERVAL);
+  
+  // Setup auto-save system with maximum protection
+  setupAutoSave();
+  enhanceAutoSave();
+  startSaveHeartbeat();
+  
+  // Initial save to establish baseline
+  saveGameState();
+  
+  if (!gameLoaded) {
+    // New game messages
+    showNotification('Welcome to your garden! 🌱', 'success');
+    showNotification('💡 Start by buying carrot seeds from the shop!', 'info', 5000);
+    showNotification('🎯 Complete quests to earn prehistoric seed packs!', 'info', 7000);
+    showNotification('🍭 NEW: 50+ seed packs added! Find the ultimate Candy Pack! 🍬', 'info', 9000);
+    showNotification('🛡️ Your progress is protected with automatic saving!', 'info', 11000);
+  }
+  
+  console.log('Game initialization complete - 64 seed packs available!');
+}
+
+// Enhanced auto-save functionality with guaranteed synchronization
+function setupAutoSave() {
+  // Frequent auto-save every 10 seconds for maximum protection
+  setInterval(() => {
+    saveGameState();
+  }, 10000);
+  
+  // CRITICAL: Save on ANY page unload event
+  window.addEventListener('beforeunload', (e) => {
+    saveGameState();
+    // Force synchronous save by using a blocking operation
+    try {
+      // Small delay to ensure save completes
+      const start = Date.now();
+      while (Date.now() - start < 50) {
+        // Blocking loop to ensure save has time to complete
+      }
+    } catch (error) {
+      console.error('Emergency save failed:', error);
+    }
+  });
+  
+  // Save on page hide (more reliable than beforeunload in modern browsers)
+  window.addEventListener('pagehide', () => {
+    saveGameState();
+  });
+  
+  // Save when page loses focus
+  window.addEventListener('blur', () => {
+    saveGameState();
+  });
+  
+  // Save when visibility changes (tab switching, minimizing)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      saveGameState();
+    }
+  });
+  
+  // Save on browser back/forward navigation
+  window.addEventListener('popstate', () => {
+    saveGameState();
+  });
+  
+  // Save on hash change
+  window.addEventListener('hashchange', () => {
+    saveGameState();
+  });
+  
+  // Save on page resize (mobile orientation change, etc.)
+  window.addEventListener('resize', () => {
+    saveGameState();
+  });
+  
+  // MOBILE SPECIFIC: Save on orientation change
+  window.addEventListener('orientationchange', () => {
+    saveGameState();
+  });
+  
+  // MOBILE SPECIFIC: Save on app going to background
+  document.addEventListener('freeze', () => {
+    saveGameState();
+  });
+  
+  // MOBILE SPECIFIC: Save on app resume
+  document.addEventListener('resume', () => {
+    saveGameState();
+  });
+  
+  // PWA SPECIFIC: Save on app install
+  window.addEventListener('appinstalled', () => {
+    saveGameState();
+  });
+  
+  // Save on any error that might crash the page
+  window.addEventListener('error', () => {
+    try {
+      saveGameState();
+    } catch (e) {
+      console.error('Emergency save on error failed:', e);
+    }
+  });
+  
+  // Save on unhandled promise rejection
+  window.addEventListener('unhandledrejection', () => {
+    try {
+      saveGameState();
+    } catch (e) {
+      console.error('Emergency save on rejection failed:', e);
+    }
+  });
+}
+
+// Enhanced auto-save on important actions with immediate saving
+function enhanceAutoSave() {
+  // Save immediately when money changes (buying, selling, earning)
+  const originalUpdateMoney = window.updateMoney;
+  window.updateMoney = function(amount) {
+    originalUpdateMoney(amount);
+    saveGameState(); // Immediate save, no delay
+  };
+  
+  // Save immediately when planting seeds
+  const originalPlantSeed = window.plantSeed;
+  window.plantSeed = function(index, seedType) {
+    originalPlantSeed(index, seedType);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when harvesting
+  const originalHarvestPlot = window.harvestPlot;
+  window.harvestPlot = function(index) {
+    originalHarvestPlot(index);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when completing quests
+  const originalCompleteQuest = window.completeQuest;
+  window.completeQuest = function(quest) {
+    originalCompleteQuest(quest);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when opening seed packs
+  const originalOpenSeedPack = window.openSeedPack;
+  window.openSeedPack = function(packType) {
+    originalOpenSeedPack(packType);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when buying seed packs
+  const originalBuySeedPack = window.buySeedPack;
+  window.buySeedPack = function(packType) {
+    originalBuySeedPack(packType);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when buying seeds
+  const originalBuySeed = window.buySeed;
+  window.buySeed = function(seedType) {
+    originalBuySeed(seedType);
+    saveGameState(); // Immediate save
+  };
+  
+  // Save immediately when selling fruits
+  const originalSellAllFruits = window.sellAllFruits;
+  window.sellAllFruits = function() {
+    originalSellAllFruits();
+    saveGameState(); // Immediate save
+  };
+  
+  // Save when toggling modes
+  const originalToggleDeleteMode = window.toggleDeleteMode;
+  window.toggleDeleteMode = function() {
+    originalToggleDeleteMode();
+    saveGameState();
+  };
+  
+  const originalToggleTrowelMode = window.toggleTrowelMode;
+  window.toggleTrowelMode = function() {
+    originalToggleTrowelMode();
+    saveGameState();
+  };
+}
+
+// Heartbeat save system - saves every action with a heartbeat
+let saveHeartbeat;
+function startSaveHeartbeat() {
+  // Clear any existing heartbeat
+  if (saveHeartbeat) {
+    clearInterval(saveHeartbeat);
+  }
+  
+  // Ultra-frequent heartbeat save every 5 seconds
+  saveHeartbeat = setInterval(() => {
+    saveGameState();
+  }, 5000);
+}
+
+// Enhanced saveGameState with error recovery and retry logic
+function saveGameState() {
+  let retries = 3;
+  
+  function attemptSave() {
+    try {
+      const saveData = {
+        money: gameState.money,
+        inventory: gameState.inventory,
+        fruits: gameState.fruits,
+        seedPacks: gameState.seedPacks,
+        garden: gameState.garden,
+        favoritedPlants: Array.from(gameState.favoritedPlants),
+        quests: gameState.quests,
+        completedQuests: gameState.completedQuests,
+        totalHarvested: gameState.totalHarvested,
+        saveTime: Date.now(),
+        version: '2.0'
+      };
+      
+      const saveString = JSON.stringify(saveData);
+      
+      // Try multiple save methods for maximum reliability
+      
+      // Primary: Cookie save
+      document.cookie = `gardenGame=${encodeURIComponent(saveString)}; expires=${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()}; path=/; SameSite=Lax`;
+      
+      // Secondary: localStorage backup (if available)
+      try {
+        localStorage.setItem('gardenGameBackup', saveString);
+      } catch (localError) {
+        console.warn('localStorage backup failed:', localError);
+      }
+      
+      // Tertiary: sessionStorage backup (if available)
+      try {
+        sessionStorage.setItem('gardenGameSession', saveString);
+      } catch (sessionError) {
+        console.warn('sessionStorage backup failed:', sessionError);
+      }
+      
+      // Show subtle save indicator only occasionally
+      if (!window.saveCounter) window.saveCounter = 0;
+      window.saveCounter++;
+      
+      if (window.saveCounter % 10 === 0) {
+        showSaveIndicator();
+      }
+      
+      console.log('Game saved successfully with multiple backups');
+      return true;
+      
+    } catch (error) {
+      console.error('Save attempt failed:', error);
+      retries--;
+      
+      if (retries > 0) {
+        // Retry after a short delay
+        setTimeout(() => {
+          console.log(`Retrying save... ${retries} attempts remaining`);
+          attemptSave();
+        }, 100);
+      } else {
+        console.error('All save attempts failed!');
+        showNotification('⚠️ Save failed! Your progress may not be saved!', 'error', 8000);
+      }
+      return false;
+    }
+  }
+  
+  return attemptSave();
+}
+
+// Enhanced load with multiple fallback sources
+function loadGameState() {
+  try {
+    let saveData = null;
+    let source = 'none';
+    
+    // Try loading from cookie first
+    const cookies = document.cookie.split(';');
+    const gardenGameCookie = cookies.find(cookie => cookie.trim().startsWith('gardenGame='));
+    
+    if (gardenGameCookie) {
+      try {
+        const saveString = decodeURIComponent(gardenGameCookie.split('=')[1]);
+        saveData = JSON.parse(saveString);
+        source = 'cookie';
+      } catch (cookieError) {
+        console.warn('Cookie load failed, trying backups:', cookieError);
+      }
+    }
+    
+    // Fallback to localStorage
+    if (!saveData) {
+      try {
+        const backupString = localStorage.getItem('gardenGameBackup');
+        if (backupString) {
+          saveData = JSON.parse(backupString);
+          source = 'localStorage';
+        }
+      } catch (localError) {
+        console.warn('localStorage backup load failed:', localError);
+      }
+    }
+    
+    // Fallback to sessionStorage
+    if (!saveData) {
+      try {
+        const sessionString = sessionStorage.getItem('gardenGameSession');
+        if (sessionString) {
+          saveData = JSON.parse(sessionString);
+          source = 'sessionStorage';
+        }
+      } catch (sessionError) {
+        console.warn('sessionStorage backup load failed:', sessionError);
+      }
+    }
+    
+    if (!saveData) {
+      console.log('No save data found from any source, starting new game');
+      return false;
+    }
+    
+    // Validate save data version
+    if (!saveData.version) {
+      console.log('Old save format detected, starting fresh');
+      return false;
+    }
+    
+    // Load saved data
+    gameState.money = saveData.money || GAME_CONFIG.STARTING_MONEY;
+    gameState.inventory = { ...gameState.inventory, ...saveData.inventory };
+    gameState.fruits = { ...gameState.fruits, ...saveData.fruits };
+    gameState.seedPacks = { ...gameState.seedPacks, ...saveData.seedPacks };
+    gameState.garden = saveData.garden || gameState.garden;
+    gameState.favoritedPlants = new Set(saveData.favoritedPlants || []);
+    gameState.quests = saveData.quests || gameState.quests;
+    gameState.completedQuests = saveData.completedQuests || [];
+    gameState.totalHarvested = { ...gameState.totalHarvested, ...saveData.totalHarvested };
+    
+    // Calculate offline progress
+    const offlineTime = Math.floor((Date.now() - (saveData.saveTime || Date.now())) / 1000);
+    if (offlineTime > 0) {
+      processOfflineProgress(offlineTime);
+    }
+    
+    console.log(`Game loaded successfully from ${source}`);
+    showNotification(`🔄 Game progress loaded from ${source}! Welcome back! 💾`, 'success', 4000);
+    
+    if (offlineTime > 60) {
+      const offlineMinutes = Math.floor(offlineTime / 60);
+      showNotification(`⏰ You were away for ${offlineMinutes} minute(s)!`, 'info', 6000);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to load save data:', error);
+    showNotification('Failed to load save data, starting fresh!', 'warning');
+    return false;
+  }
+}
+
+// Background save indicator (subtle notification)
+function showSaveIndicator() {
+  const indicator = document.createElement('div');
+  indicator.style.cssText = `
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  `;
+  indicator.textContent = '💾 Saved';
+  document.body.appendChild(indicator);
+  
+  // Fade in
+  setTimeout(() => {
+    indicator.style.opacity = '1';
+  }, 10);
+  
+  // Fade out and remove
+  setTimeout(() => {
+    indicator.style.opacity = '0';
+    setTimeout(() => {
+      if (indicator.parentNode) {
+        indicator.parentNode.removeChild(indicator);
+      }
+    }, 300);
+  }, 1500);
+}
+
+// Updated saveGameState function with subtle indicator
+function saveGameState() {
+  try {
+    const saveData = {
+      money: gameState.money,
+      inventory: gameState.inventory,
+      fruits: gameState.fruits,
+      seedPacks: gameState.seedPacks,
+      garden: gameState.garden,
+      favoritedPlants: Array.from(gameState.favoritedPlants),
+      quests: gameState.quests,
+      completedQuests: gameState.completedQuests,
+      totalHarvested: gameState.totalHarvested,
+      saveTime: Date.now(),
+      version: '2.0'
+    };
+    
+    const saveString = JSON.stringify(saveData);
+    document.cookie = `gardenGame=${encodeURIComponent(saveString)}; expires=${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString()}; path=/`;
+    
+    // Show subtle save indicator only occasionally (every 5th save)
+    if (!window.saveCounter) window.saveCounter = 0;
+    window.saveCounter++;
+    
+    if (window.saveCounter % 5 === 0) {
+      showSaveIndicator();
+    }
+    
+    console.log('Game saved automatically');
+  } catch (error) {
+    console.error('Failed to save game:', error);
+    showNotification('Failed to save game progress!', 'error');
+  }
+}
+
+// Manual save function (only for code usage now)
+function manualSave() {
+  saveGameState();
+  showNotification('💾 Game saved manually!', 'success');
+  showSaveIndicator();
+}
+
+// Secret Code System
+function handleCodeInput(event) {
+  if (event.key === 'Enter') {
+    const codeInput = document.getElementById('code-input');
+    const code = codeInput.value.trim();
+    
+    if (code === '8749') {
+      gameState.money = Infinity;
+      updateUI();
+      // Auto-save happens through updateMoney override
+      showNotification('🎉 CHEAT ACTIVATED! Infinite credits unlocked! 💰♾️', 'success', 5000);
+      codeInput.value = '';
+      codeInput.style.border = '2px solid #4caf50';
+      
+      // Reset border after 2 seconds
+      setTimeout(() => {
+        codeInput.style.border = '1px solid #ddd';
+      }, 2000);
+    } else if (code === 'RESET' || code === 'reset') {
+      if (confirm('⚠️ Are you sure you want to delete ALL save data and start over? This cannot be undone!')) {
+        clearSaveData();
+      }
+      codeInput.value = '';
+    } else if (code === 'SAVE' || code === 'save') {
+      manualSave();
+      codeInput.value = '';
+      codeInput.style.border = '2px solid #4caf50';
+      
+      setTimeout(() => {
+        codeInput.style.border = '1px solid #ddd';
+      }, 2000);
+    } else if (code.length === 4) {
+      showNotification('❌ Invalid code! Try again...', 'error');
+      codeInput.value = '';
+      codeInput.style.border = '2px solid #f44336';
+      
+      // Reset border after 2 seconds
+      setTimeout(() => {
+        codeInput.style.border = '1px solid #ddd';
+      }, 2000);
+    }
+  }
+}
+
+// Start the game when DOM is loaded
+document.addEventListener('DOMContentLoaded', initGame);
+</script>
+
+</body>
+</html>
